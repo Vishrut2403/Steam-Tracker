@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String         @id @default(uuid())
+  steamId       String         @unique
+  steamUsername  String?
+  avatarUrl     String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  libraryGames    LibraryGame[]
+  wishlistGames   SteamWishlist[]
+
+  @@map("users")
+}
+
+model LibraryGame {
+  id              String   @id @default(uuid())
+  userId         String
+  appId           String
+  name            String
+  playtimeForever Int
+  pricePaid       Float?
+  pricePerHour    Float?
+  genres          String[]
+  userTags        String[]
+  
+  status          String?  @default("unplayed")
+  rating          Int?
+  tier            String?
+  review          String?
+  
+  imgIconUrl      String?
+  imgLogoUrl      String?
+  headerImage     String?
+  
+  totalAchievements      Int?  @default(0)
+  completedAchievements  Int?  @default(0)
+  achievementPercentage  Float? @default(0)
+  
+  completedAt    DateTime?
+  lastPlayedAt   DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, appId])
+  @@index([userId])
+  @@index([status])
+  @@index([tier])
+  @@index([rating])
+  @@map("library_games")
+}
+
+model SteamWishlist {
+  id              String   @id @default(uuid())
+  userId          String
+  name            String
+  tags            String[]
+  listPrice       Float
+  currentPrice    Float
+  
+  // Recommendation metadata (computed, not user input)
+  recommendationScore Float    @default(0)
+  discountPercent     Float    @default(0)
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([recommendationScore])
+  @@map("steam_wishlist")
+}

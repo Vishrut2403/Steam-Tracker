@@ -1,0 +1,280 @@
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+interface RecommendedGame {
+  id: string;
+  name: string;
+  tags: string[];
+  listPrice: number;
+  currentPrice: number;
+  discountPercent: number;
+  finalScore: number;
+  breakdown: {
+    discountScore: number;
+    playtimeScore: number;
+    tagMatchScore: number;
+    ratingScore: number;
+    tierScore: number;
+  };
+  estimatedPlaytime: number;
+  reasoning: string[];
+}
+
+interface RecommendationSystemProps {
+  userId: string;
+}
+
+function RecommendationSystem({ userId }: RecommendationSystemProps) {
+  const [budget, setBudget] = useState<string>('1000');
+  const [loading, setLoading] = useState(false);
+  const [selectedGames, setSelectedGames] = useState<RecommendedGame[]>([]);
+  const [totalCost, setTotalCost] = useState(0);
+  const [totalScore, setTotalScore] = useState(0);
+  const [remaining, setRemaining] = useState(0);
+  const [error, setError] = useState('');
+
+  const handleOptimize = async () => {
+    const budgetNum = parseFloat(budget);
+
+    if (isNaN(budgetNum) || budgetNum <= 0) {
+      setError('Please enter a valid budget');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/recommendations/${userId}/optimize`,
+        { budget: budgetNum }
+      );
+
+      if (response.data.success) {
+        setSelectedGames(response.data.selectedGames || []);
+        setTotalCost(response.data.totalCost || 0);
+        setTotalScore(response.data.totalScore || 0);
+        setRemaining(response.data.remaining || 0);
+
+        if (response.data.selectedGames?.length === 0) {
+          setError('No games found within budget or wishlist is empty');
+        }
+      }
+    } catch (err) {
+      setError('Failed to optimize. Check your wishlist and try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-white mb-3">Recommendation System</h2>
+          <p className="text-gray-400">
+          Get optimal game recommendations within your budget using 0/1 Knapsack algorithm
+        </p>
+      </div>
+
+      {/* Budget Input Card */}
+      <div className="bg-slate-900/50 backdrop-blur-2xl border border-slate-800/50 rounded-2xl p-6 shadow-2xl">
+        <div className="flex items-end gap-4">
+          <div className="flex-1">
+            <label className="block text-sm font-semibold text-gray-300 mb-3">
+              Budget (₹)
+            </label>
+            <input
+              type="number"
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              placeholder="1000"
+              className="w-full px-4 py-3 bg-slate-800/50 backdrop-blur-sm text-white text-lg rounded-xl border border-slate-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all duration-300"
+              min="0"
+              step="100"
+            />
+          </div>
+          <button
+            onClick={handleOptimize}
+            disabled={loading}
+            className="px-8 py-3 bg-blue-600/20 backdrop-blur-sm border border-blue-500/30 text-white font-semibold rounded-xl hover:bg-blue-600/30 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+          >
+            {loading ? 'Optimizing...' : 'Run Recommendation'}
+          </button>
+        </div>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-500/10 backdrop-blur-2xl border border-red-500/20 rounded-2xl p-4 text-red-300 shadow-xl">
+          {error}
+        </div>
+      )}
+
+      {/* Results Summary */}
+      {selectedGames.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-gradient-to-br from-blue-600/20 to-blue-700/20 backdrop-blur-2xl border border-blue-500/30 rounded-2xl p-6 shadow-2xl">
+            <p className="text-blue-300 text-sm font-semibold mb-1 uppercase tracking-wider">Games Selected</p>
+            <p className="text-white text-3xl font-bold">{selectedGames.length}</p>
+          </div>
+          <div className="bg-gradient-to-br from-green-600/20 to-green-700/20 backdrop-blur-2xl border border-green-500/30 rounded-2xl p-6 shadow-2xl">
+            <p className="text-green-300 text-sm font-semibold mb-1 uppercase tracking-wider">Total Cost</p>
+            <p className="text-white text-3xl font-bold">₹{totalCost.toFixed(2)}</p>
+          </div>
+          <div className="bg-gradient-to-br from-purple-600/20 to-purple-700/20 backdrop-blur-2xl border border-purple-500/30 rounded-2xl p-6 shadow-2xl">
+            <p className="text-purple-300 text-sm font-semibold mb-1 uppercase tracking-wider">Total Score</p>
+            <p className="text-white text-3xl font-bold">{totalScore}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Remaining Budget */}
+      {selectedGames.length > 0 && (
+        <div className="bg-slate-900/50 backdrop-blur-2xl border border-slate-800/50 rounded-2xl p-5 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 font-medium">Remaining Budget:</span>
+            <span className="text-2xl font-bold text-green-400">₹{remaining.toFixed(2)}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Selected Games */}
+      {selectedGames.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-xl font-bold text-white">Recommended Games</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {selectedGames.map((game) => (
+              <div
+                key={game.id}
+                className="bg-slate-900/50 backdrop-blur-2xl border border-slate-800/50 rounded-2xl overflow-hidden hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300"
+              >
+                <div className="p-6 space-y-4">
+                  {/* Game Name */}
+                  <h4 className="text-white font-bold text-lg line-clamp-2 min-h-[3.5rem]">
+                    {game.name}
+                  </h4>
+
+                  {/* Price Section */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-500 text-xs mb-1 uppercase tracking-wider">Current Price</p>
+                      <p className="text-green-400 text-2xl font-bold">
+                        ₹{game.currentPrice.toFixed(2)}
+                      </p>
+                    </div>
+                    {game.discountPercent > 0 && (
+                      <div className="px-3 py-2 bg-green-600/20 backdrop-blur-sm border border-green-500/30 text-green-300 text-sm font-bold rounded-lg">
+                        -{game.discountPercent}%
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Score Badge */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-gray-400 text-sm font-medium">Recommendation Score</span>
+                      <span className="text-white text-lg font-bold">{game.finalScore}/100</span>
+                    </div>
+                    <div className="w-full h-2.5 bg-slate-800/50 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-500"
+                        style={{ width: `${game.finalScore}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Score Breakdown */}
+                  <div className="space-y-1.5 p-4 bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/30">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">Discount Score:</span>
+                      <span className="text-white font-semibold">{game.breakdown.discountScore}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">Playtime Score:</span>
+                      <span className="text-white font-semibold">{game.breakdown.playtimeScore}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">Tag Match:</span>
+                      <span className="text-white font-semibold">{game.breakdown.tagMatchScore}</span>
+                    </div>
+                  </div>
+
+                  {/* Reasoning */}
+                  <div>
+                    <p className="text-gray-400 text-xs font-medium mb-2 uppercase tracking-wider">Why Recommended</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {game.reasoning.map((reason, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2.5 py-1 bg-blue-600/20 backdrop-blur-sm border border-blue-500/30 text-blue-300 text-xs rounded-lg font-medium"
+                        >
+                          {reason}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Tags */}
+                  {game.tags.length > 0 && (
+                    <div className="border-t border-slate-800/50 pt-4">
+                      <div className="flex flex-wrap gap-1.5">
+                        {game.tags.slice(0, 3).map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-2.5 py-1 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 text-gray-300 text-xs rounded-lg"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {game.tags.length > 3 && (
+                          <span className="px-2.5 py-1 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 text-gray-500 text-xs rounded-lg">
+                            +{game.tags.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-40">
+          <div className="relative">
+            <div className="w-20 h-20 border-4 border-slate-800/50 border-t-blue-500 rounded-full animate-spin" />
+            <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-cyan-500 rounded-full animate-spin" style={{ animationDelay: '150ms' }} />
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && selectedGames.length === 0 && !error && (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center max-w-md mx-auto px-6">
+            <div className="w-20 h-20 bg-blue-600/20 backdrop-blur-sm border border-blue-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <svg className="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-3">Ready to Optimize</h3>
+            <p className="text-gray-400 mb-4">
+              Enter your budget and click "Run Recommendation" to get optimal game suggestions
+            </p>
+            <p className="text-sm text-gray-500">
+              Make sure you have games in your wishlist with prices set
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default RecommendationSystem;

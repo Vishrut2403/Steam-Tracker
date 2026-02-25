@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+:root {
+  --steam-dark: #1b2838;
+  --steam-blue: #66c0f4;
+  --steam-light: #8bb4d1;
+}
+
+@theme inline {
+  --color-steam-dark: var(--steam-dark);
+  --color-steam-blue: var(--steam-blue);
+  --color-steam-light: var(--steam-light);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--steam-dark);
+  color: #c7d5e0;
+}
