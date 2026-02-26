@@ -174,8 +174,8 @@ npm run dev
 
 ## Author
 
-\*\*Vishrut Sachan\*\*\
-\[GitHub]\(https://github.com/Vishrut2403)
+Vishrut Sachan\
+GitHub: https://github.com/Vishrut2403
 
 ---
 
