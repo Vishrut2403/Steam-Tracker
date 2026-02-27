@@ -48,12 +48,11 @@ interface StoreAppDetails {
 }
 
 interface WishlistGameData {
-  appId: string;
   name: string;
   currentPrice: number;
   originalPrice: number;
   discountPercent: number;
-  genres: string[];
+  tags: string[];
 }
 
 interface AchievementData {
@@ -302,15 +301,14 @@ class SteamService {
       const originalPrice = game.price_overview ? game.price_overview.initial / 100 : 0;
       const currentPrice = game.price_overview ? game.price_overview.final / 100 : 0;
       const discountPercent = game.price_overview ? game.price_overview.discount_percent : 0;
-      const genres = game.genres ? game.genres.map((g) => g.description) : [];
+      const tags = game.genres ? game.genres.map((g) => g.description) : [];
 
       enriched.push({
-        appId: String(appId),
         name: game.name,
         currentPrice,
         originalPrice,
         discountPercent,
-        genres,
+        tags,
       });
 
       await new Promise((resolve) => setTimeout(resolve, REQUEST_DELAY_MS));
@@ -319,30 +317,35 @@ class SteamService {
     return enriched;
   }
 
-  // Save enriched wishlist to DB 
-  async saveWishlist(steamId: string, games: WishlistGameData[]) {
-    const user = await this.findOrCreateUser(steamId);
+// Save enriched wishlist to DB
+async saveWishlist(steamId: string, games: WishlistGameData[]) {
+  const user = await this.findOrCreateUser(steamId);
 
-    for (const game of games) {
-      await prisma.wishlistGame.upsert({
-        where: { userId_appId: { userId: user.id, appId: game.appId } },
-        update: {
-          name: game.name,
-          currentPrice: game.currentPrice,
-          discountPercent: game.discountPercent,
-          genres: game.genres,
-        },
-        create: {
+  for (const game of games) {
+    await prisma.steamWishlist.upsert({
+      where: {
+        userId_name: {
           userId: user.id,
-          appId: game.appId,
           name: game.name,
-          currentPrice: game.currentPrice,
-          discountPercent: game.discountPercent,
-          genres: game.genres,
         },
-      });
-    }
+      },
+      update: {
+        currentPrice: game.currentPrice,
+        discountPercent: game.discountPercent,
+        tags: game.tags,
+        listPrice: game.originalPrice,
+      },
+      create: {
+        userId: user.id,
+        name: game.name,
+        tags: game.tags ?? [],
+        listPrice: game.originalPrice ?? 0,
+        currentPrice: game.currentPrice ?? 0,
+        discountPercent: game.discountPercent ?? 0,
+      },
+    });
   }
+}
 
   // Fetch player info from Steam API 
   async getPlayerSummary(steamId: string) {

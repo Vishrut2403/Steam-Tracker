@@ -76,6 +76,7 @@ model SteamWishlist {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, name]) 
   @@index([userId])
   @@index([recommendationScore])
   @@map("steam_wishlist")
