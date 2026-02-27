@@ -335,16 +335,6 @@ function Home() {
     return colors[tier || ''] || 'from-gray-500 to-gray-600';
   };
 
-  const getStatusColor = (status: string | null) => {
-    const colors: { [key: string]: string } = {
-      playing: 'from-blue-500/20 to-blue-600/20 border-blue-500/30',
-      completed: 'from-green-500/20 to-emerald-600/20 border-green-500/30',
-      backlog: 'from-orange-500/20 to-amber-600/20 border-orange-500/30',
-      unplayed: 'from-gray-500/20 to-slate-600/20 border-gray-500/30',
-    };
-    return colors[status || 'unplayed'] || colors.unplayed;
-  };
-
   const SortButton = ({ field, label }: { field: SortField; label: string }) => (
     <button
       onClick={() => handleSort(field)}

@@ -40,7 +40,7 @@ function SteamWishlist({ userId }: SteamWishlistProps) {
     try {
       const response = await axios.get(`${API_URL}/api/wishlist/${userId}`);
       setItems(response.data.items || []);
-    } catch (error) {
+    } catch (_) {
       console.error('Failed to load wishlist:', error);
     } finally {
       setLoading(false);
