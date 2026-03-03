@@ -8,11 +8,22 @@ frontend/node_modules/
 frontend/dist/
 frontend/.env
 
+desktop/node_modules/
+desktop/dist/
+desktop/out/
+desktop/build/
+
+dist/
+build/
+out/
+*.AppImage
+
+.env
+.env.*
 *.log
 
 .DS_Store
-
 .vscode/
 .idea/
 
-.sh
+*.sh

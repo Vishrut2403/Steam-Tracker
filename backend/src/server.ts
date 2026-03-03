@@ -2,7 +2,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express, { Express, Request, Response, NextFunction } from 'express';
+import path from 'path';
 import cors from 'cors';
+
 import recommendationRoutes from './routes/recommendation.routes';
 import wishlistRoutes from './routes/wishlist.routes';
 import steamRoutes from './routes/steam.routes';
@@ -10,18 +12,19 @@ import authRoutes from './routes/auth.routes';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
+const isProd = process.env.NODE_ENV === 'production';
 
-// Middleware
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: isProd
+    ? true 
+    : process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true
 }));
+
 app.use(express.json());
 
-
-
-// Health check
-app.get('/health', (req: Request, res: Response) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
     message: 'Steam Tracker API is running!',
@@ -29,25 +32,42 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
-// Routes
 app.use('/api/steam', steamRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 
-app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+if (isProd) {
+
+  const frontendPath = path.join(__dirname, '../../frontend');
+
+  app.use(express.static(frontendPath));
+
+  app.get(/^\/(?!api).*/, (_req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
+}
+
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('Unhandled error:', err);
+
   res.status(500).json({
     success: false,
-    error: 'Internal server error',
+    error: 'Internal server error'
   });
 });
 
-// Start server
+   //Start Server
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Health check on port ${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/health`);
   console.log(`Steam API: http://localhost:${PORT}/api/steam`);
   console.log(`Auth: http://localhost:${PORT}/api/auth`);
+
+  if (isProd) {
+    console.log('Frontend served from Express (production mode)');
+  }
 });
 
 export default app;

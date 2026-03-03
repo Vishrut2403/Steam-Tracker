@@ -5,7 +5,12 @@ const router = Router();
 
 const STEAM_OPENID_URL = 'https://steamcommunity.com/openid/login';
 const RETURN_URL = process.env.STEAM_RETURN_URL || 'http://localhost:3001/api/auth/callback';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const isDev = process.env.NODE_ENV !== 'production';
+
+const FRONTEND_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'http://localhost:3001'
+    : 'http://localhost:5173';
 
 // Initiates Steam OpenID authentication flow
 router.get('/steam', (req: Request, res: Response) => {
