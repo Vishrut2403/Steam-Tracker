@@ -372,11 +372,6 @@ function Home() {
         <div className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-2xl border-b border-slate-800/50 shadow-lg">
           <div className="max-w-[1800px] mx-auto px-8 py-5">
             <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-500 shadow-xl shadow-blue-500/30 flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
-                </svg>
-              </div>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-white">Steam Tracker</h1>
                 <p className="text-xs text-gray-400 font-medium">Pro Edition</p>
@@ -389,12 +384,6 @@ function Home() {
         {!steamId ? (
           <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
             <div className="text-center space-y-8 max-w-md mx-auto px-6">
-              <div className="w-24 h-24 mx-auto rounded-3xl bg-slate-800/50 backdrop-blur-2xl border border-slate-700/50 shadow-2xl flex items-center justify-center">
-                <svg className="w-12 h-12 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-                  <path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
-                </svg>
-              </div>
               <div className="space-y-3">
                 <h2 className="text-4xl font-bold text-white">Welcome</h2>
                 <p className="text-gray-400">Connect your Steam account to begin tracking your gaming journey</p>

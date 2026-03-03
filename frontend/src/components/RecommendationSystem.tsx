@@ -258,11 +258,6 @@ function RecommendationSystem({ userId }: RecommendationSystemProps) {
       {!loading && selectedGames.length === 0 && !error && (
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center max-w-md mx-auto px-6">
-            <div className="w-20 h-20 bg-blue-600/20 backdrop-blur-sm border border-blue-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <svg className="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
             <h3 className="text-2xl font-bold text-white mb-3">Ready to Optimize</h3>
             <p className="text-gray-400 mb-4">
               Enter your budget and click "Run Recommendation" to get optimal game suggestions
