@@ -316,7 +316,7 @@ function Home() {
 
   const getGameImage = (game: LibraryGame) => {
     if (game.headerImage) return game.headerImage;
-    return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appId}/header.jpg`;
+    return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appId}/library_600x900.jpg`;
   };
 
   const is100Percent = (game: LibraryGame) => {
@@ -369,7 +369,7 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-gray-950 text-gray-100">
-        <div className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-2xl border-b border-slate-800/50 shadow-lg">
+        <div className="sticky top-0 z-50 bg-slate-900/80 border-b border-slate-800/50 shadow-lg">
           <div className="max-w-[1800px] mx-auto px-8 py-5">
             <div className="flex items-center gap-4">
               <div>
@@ -390,7 +390,7 @@ function Home() {
               </div>
               <button
                 onClick={handleSteamLogin}
-                className="px-8 py-4 bg-slate-800/50 backdrop-blur-2xl border border-slate-700/50 text-white font-semibold rounded-2xl shadow-2xl hover:bg-slate-700/50 hover:scale-[1.02] transition-all duration-300"
+                className="px-8 py-4 bg-slate-800/50 border border-slate-700/50 text-white font-semibold rounded-2xl shadow-md hover:bg-slate-700/50 transition-all duration-300"
               >
                 Sign in with Steam
               </button>
@@ -399,7 +399,7 @@ function Home() {
         ) : (
           <>
             {/* Tabs */}
-            <div className="flex gap-1 p-1.5 bg-slate-900/50 backdrop-blur-2xl rounded-2xl border border-slate-800/50 mb-8 w-fit shadow-xl">
+            <div className="flex gap-1 p-1.5 bg-slate-900/50 rounded-2xl border border-slate-800/50 mb-8 w-fit shadow-md">
               {[
                 { key: 'journal', label: 'Journal' },
                 { key: 'dashboard', label: 'Dashboard' },
@@ -437,9 +437,9 @@ function Home() {
                       <button
                         key={key}
                         onClick={() => setFilterStatus(key)}
-                        className={`group px-5 py-2.5 rounded-xl backdrop-blur-2xl transition-all duration-300 ${
+                        className={`group px-5 py-2.5 rounded-xl transition-all duration-300 ${
                           filterStatus === key
-                            ? 'bg-blue-600/20 border border-blue-500/30 text-white shadow-xl'
+                            ? 'bg-blue-600/20 border border-blue-500/30 text-white shadow-md'
                             : 'bg-slate-800/50 border border-slate-700/50 text-gray-400 hover:bg-slate-700/50 hover:text-white hover:border-slate-600/50'
                         }`}
                       >
@@ -465,7 +465,7 @@ function Home() {
                   <button
                     onClick={syncFromSteam}
                     disabled={syncing}
-                    className="px-6 py-2.5 bg-slate-800/50 backdrop-blur-2xl rounded-xl border border-slate-700/50 font-semibold hover:bg-slate-700/50 hover:scale-[1.02] transition-all duration-300 shadow-xl disabled:opacity-50 text-white"
+                    className="px-6 py-2.5 bg-slate-800/50 rounded-xl border border-slate-700/50 font-semibold hover:bg-slate-700/50 transition-all duration-300 shadow-md disabled:opacity-50 text-white"
                   >
                     {syncing ? '⟳ Syncing...' : '⟳ Sync'}
                   </button>
@@ -475,7 +475,7 @@ function Home() {
 
             {/* Error */}
             {error && (
-              <div className="mb-6 p-4 bg-red-500/10 backdrop-blur-2xl border border-red-500/20 rounded-2xl text-red-300 shadow-xl">
+              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-300 shadow-md">
                 {error}
               </div>
             )}
@@ -502,37 +502,37 @@ function Home() {
                     }}
                     className="group relative cursor-pointer"
                   >
-                    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900/50 backdrop-blur-sm border border-slate-800/50 shadow-2xl transition-all duration-500 hover:scale-[1.03] hover:shadow-[0_20px_60px_-15px_rgba(59,130,246,0.5)] hover:border-blue-500/30">
+                    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900/50 border border-slate-800/50 shadow-md transition-all duration-500 hover:border-blue-500/40 shadow-md hover:border-blue-500/30">
                       <img
                         src={getGameImage(game)}
                         alt={game.name}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        className="w-full h-full object-cover transition-transform duration-700"
                         onError={(e) => {
                           e.currentTarget.src = 'https://via.placeholder.com/300x400/1a1a1a/666?text=No+Image';
                         }}
                       />
                       
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-black/40 opacity-70 group-hover:opacity-90 transition-opacity duration-300" />
 
                       {is100Percent(game) && (
-                        <div className="absolute top-3 left-3 w-11 h-11 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center shadow-2xl shadow-yellow-500/50 backdrop-blur-sm">
+                        <div className="absolute top-3 left-3 w-11 h-11 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md shadow-yellow-500/50">
                           <span className="text-white text-xl font-bold">★</span>
                         </div>
                       )}
 
                       {game.tier && (
-                        <div className={`absolute top-3 right-3 w-11 h-11 bg-gradient-to-br ${getTierColor(game.tier)} rounded-xl flex items-center justify-center shadow-2xl backdrop-blur-sm font-bold text-white text-lg`}>
+                        <div className={`absolute top-3 right-3 w-11 h-11 bg-gradient-to-br ${getTierColor(game.tier)} rounded-xl flex items-center justify-center shadow-md font-bold text-white text-lg`}>
                           {game.tier}
                         </div>
                       )}
 
-                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-sm">
+                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
                         <h3 className="text-sm font-bold text-white line-clamp-2 drop-shadow-2xl mb-2">
                           {game.name}
                         </h3>
                         
                         {game.totalAchievements && game.totalAchievements > 0 && (
-                          <div className="relative h-2 bg-slate-800/50 rounded-full overflow-hidden backdrop-blur-sm">
+                          <div className="relative h-2 bg-slate-800/50 rounded-full overflow-hidden">
                             <div
                               className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-500"
                               style={{ width: `${game.achievementPercentage || 0}%` }}
@@ -548,10 +548,10 @@ function Home() {
 
             {/* Dashboard - Steam-Style Table */}
             {activeTab === 'dashboard' && !loading && (
-              <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl border border-slate-800/50 shadow-2xl overflow-hidden">
+              <div className="bg-slate-900/50 rounded-2xl border border-slate-800/50 shadow-md overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-slate-800/50 backdrop-blur-2xl border-b border-slate-700/50">
+                    <thead className="bg-slate-800/50 border-b border-slate-700/50">
                       <tr>
                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Name</th>
                         <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">Price/Hour</th>
@@ -642,7 +642,7 @@ function Home() {
                                         });
                                       }
                                     }}
-                                    className="w-24 px-3 py-1.5 bg-slate-800/50 backdrop-blur-sm border border-blue-500/50 rounded-lg text-white text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    className="w-24 px-3 py-1.5 bg-slate-800/50 border border-blue-500/50 rounded-lg text-white text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                                     autoFocus
                                   />
                                   <button
@@ -704,13 +704,13 @@ function Home() {
                                       });
                                     }}
                                     placeholder="tag1, tag2, tag3"
-                                    className="flex-1 px-3 py-1.5 bg-slate-800/50 backdrop-blur-sm border border-blue-500/50 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    className="flex-1 px-3 py-1.5 bg-slate-800/50 border border-blue-500/50 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                                     autoFocus
                                   />
                                   <button
                                     onClick={() => handleSaveTags(game.appId)}
                                     disabled={isSavingTag}
-                                    className="px-3 py-1.5 bg-green-600/20 backdrop-blur-sm border border-green-500/30 text-green-300 text-xs font-semibold rounded-lg hover:bg-green-600/30 transition-all duration-300"
+                                    className="px-3 py-1.5 bg-green-600/20 border border-green-500/30 text-green-300 text-xs font-semibold rounded-lg hover:bg-green-600/30 transition-all duration-300"
                                   >
                                     {isSavingTag ? '...' : 'Save'}
                                   </button>
@@ -720,7 +720,7 @@ function Home() {
                                   {game.userTags?.map((tag) => (
                                     <span
                                       key={tag}
-                                      className="px-3 py-1 bg-slate-800/50 backdrop-blur-sm rounded-full border border-slate-700/50 text-xs font-medium text-gray-300"
+                                      className="px-3 py-1 bg-slate-800/50 rounded-full border border-slate-700/50 text-xs font-medium text-gray-300"
                                     >
                                       {tag}
                                     </span>
@@ -760,7 +760,7 @@ function Home() {
             {filteredGames.length === 0 && !loading && activeTab !== 'wishlist' && activeTab !== 'recommendations' && (
               <div className="flex items-center justify-center min-h-[400px]">
               <div className="text-center mx-auto px-6">
-                  <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-slate-800/50 backdrop-blur-2xl border border-slate-700/50 flex items-center justify-center shadow-xl">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center shadow-md">
                     <span className="text-4xl">🎮</span>
                   </div>
                   <p className="text-gray-400 text-lg font-medium">No games found</p>
@@ -774,11 +774,11 @@ function Home() {
       {/* Modal */}
       {selectedGame && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-2xl"
+          className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60"
           onClick={() => setSelectedGame(null)}
         >
           <div
-            className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-900/90 backdrop-blur-3xl rounded-3xl shadow-2xl border border-slate-800/50"
+            className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-900/90 rounded-3xl shadow-md border border-slate-800/50"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative h-80 overflow-hidden rounded-t-3xl">
@@ -791,13 +791,13 @@ function Home() {
               
               <button
                 onClick={() => setSelectedGame(null)}
-                className="absolute top-6 right-6 w-12 h-12 bg-slate-900/60 backdrop-blur-2xl rounded-2xl border border-slate-700/50 flex items-center justify-center text-white text-2xl hover:bg-slate-800/60 hover:scale-110 transition-all duration-300"
+                className="absolute top-6 right-6 w-12 h-12 bg-slate-900/60 rounded-2xl border border-slate-700/50 flex items-center justify-center text-white text-2xl hover:bg-slate-800/60 hover:scale-110 transition-all duration-300"
               >
                 ×
               </button>
 
               {selectedGame.tier && (
-                <div className={`absolute top-6 left-6 w-16 h-16 bg-gradient-to-br ${getTierColor(selectedGame.tier)} rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-2xl backdrop-blur-sm`}>
+                <div className={`absolute top-6 left-6 w-16 h-16 bg-gradient-to-br ${getTierColor(selectedGame.tier)} rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md`}>
                   {selectedGame.tier}
                 </div>
               )}
@@ -807,13 +807,13 @@ function Home() {
               <h2 className="text-3xl font-bold text-white">{selectedGame.name}</h2>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-6 bg-slate-800/50 backdrop-blur-2xl rounded-2xl border border-slate-700/50 shadow-xl">
+                <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
                   <p className="text-xs uppercase tracking-wider text-gray-400 mb-2 font-semibold">Playtime</p>
                   <p className="text-3xl font-bold text-white">{Math.round(selectedGame.playtimeForever / 60)}h</p>
                 </div>
 
                 {selectedGame.pricePerHour && (
-                  <div className="p-6 bg-slate-800/50 backdrop-blur-2xl rounded-2xl border border-slate-700/50 shadow-xl">
+                  <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
                     <p className="text-xs uppercase tracking-wider text-gray-400 mb-2 font-semibold">Value</p>
                     <p className="text-3xl font-bold text-emerald-400">₹{selectedGame.pricePerHour.toFixed(2)}/h</p>
                   </div>
@@ -821,7 +821,7 @@ function Home() {
               </div>
 
               {selectedGame.totalAchievements && selectedGame.totalAchievements > 0 && (
-                <div className="p-6 bg-slate-800/50 backdrop-blur-2xl rounded-2xl border border-slate-700/50 shadow-xl">
+                <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-sm font-semibold text-gray-300">Achievements</p>
                     <p className="text-sm font-semibold text-white">
@@ -829,7 +829,7 @@ function Home() {
                       <span className="text-gray-400 ml-2">({selectedGame.achievementPercentage}%)</span>
                     </p>
                   </div>
-                  <div className="h-3 bg-slate-700/50 rounded-full overflow-hidden backdrop-blur-sm">
+                  <div className="h-3 bg-slate-700/50 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500"
                       style={{ width: `${selectedGame.achievementPercentage || 0}%` }}
@@ -845,7 +845,7 @@ function Home() {
                     {selectedGame.userTags.map((tag) => (
                       <span
                         key={tag}
-                        className="px-4 py-2 bg-slate-800/50 backdrop-blur-2xl rounded-full border border-slate-700/50 text-sm font-medium text-gray-200"
+                        className="px-4 py-2 bg-slate-800/50 rounded-full border border-slate-700/50 text-sm font-medium text-gray-200"
                       >
                         {tag}
                       </span>
@@ -854,12 +854,12 @@ function Home() {
                 </div>
               )}
 
-              <div className="p-6 bg-slate-800/50 backdrop-blur-2xl rounded-2xl border border-slate-700/50 shadow-xl">
+              <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
                 <label className="block text-sm font-semibold text-gray-300 mb-3">Personal Review</label>
                 <textarea
                   value={editingReview}
                   onChange={(e) => setEditingReview(e.target.value)}
-                  className="w-full h-32 px-4 py-3 bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-700/50 text-white placeholder-gray-500 resize-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-300"
+                  className="w-full h-32 px-4 py-3 bg-slate-900/50 rounded-xl border border-slate-700/50 text-white placeholder-gray-500 resize-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-300"
                   placeholder="Share your thoughts..."
                   maxLength={2000}
                 />
@@ -868,7 +868,7 @@ function Home() {
                   <button
                     onClick={handleSaveReview}
                     disabled={savingReview}
-                    className="px-6 py-2 bg-slate-700/50 backdrop-blur-2xl border border-slate-600/50 rounded-xl font-semibold hover:bg-slate-600/50 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 text-white"
+                    className="px-6 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl font-semibold hover:bg-slate-600/50 transition-all duration-300 disabled:opacity-50 text-white"
                   >
                     {savingReview ? 'Saving...' : 'Save Review'}
                   </button>
@@ -884,8 +884,8 @@ function Home() {
                       onClick={() => updateStatus(selectedGame, status)}
                       className={`px-4 py-3 rounded-xl font-semibold capitalize transition-all duration-300 ${
                         selectedGame.status === status
-                          ? 'bg-blue-600/20 backdrop-blur-2xl border border-blue-500/30 text-white shadow-xl'
-                          : 'bg-slate-800/50 backdrop-blur-2xl border border-slate-700/50 text-gray-400 hover:bg-slate-700/50 hover:text-white hover:border-slate-600/50'
+                          ? 'bg-blue-600/20 border border-blue-500/30 text-white shadow-md'
+                          : 'bg-slate-800/50 border border-slate-700/50 text-gray-400 hover:bg-slate-700/50 hover:text-white hover:border-slate-600/50'
                       }`}
                     >
                       {status}
@@ -904,7 +904,7 @@ function Home() {
                       className={`flex-1 h-16 rounded-2xl flex items-center justify-center text-3xl transition-all duration-300 ${
                         selectedGame.rating && selectedGame.rating >= star
                           ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-2xl'
-                          : 'bg-slate-800/50 backdrop-blur-2xl border border-slate-700/50 text-gray-700 hover:bg-slate-700/50 hover:scale-[1.05]'
+                          : 'bg-slate-800/50 border border-slate-700/50 text-gray-700 hover:bg-slate-700/50 hover:scale-[1.05]'
                       }`}
                     >
                       ★
