@@ -238,7 +238,7 @@ DATABASE_URL="postgresql://postgres:password@localhost:5432/salesense" \
 ./Steam\ Tracker-1.0.0.AppImage
 ```
 
-Or you can create a bash file which does this for you.
+Or you can create a bash script which does this for you.
 
 ## Author
 
