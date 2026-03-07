@@ -46,19 +46,19 @@ interface RAUserProgress {
 
 interface RAGameInfo {
   id: number;
-  Title: string;
-  ConsoleID: number;
-  ConsoleName: string;
+  title: string;
+  consoleId: number;
+  consoleName: string;
   forumTopicId: number;
   flags: number;
-  ImageIcon: string;
-  ImageTitle: string;
-  ImageIngame: string;
-  ImageBoxArt: string;
-  Publisher: string;
-  Developer: string;
-  Genre: string;
-  Released: string;
+  imageIcon: string;
+  imageTitle: string;
+  imageIngame: string;
+  imageBoxArt: string;
+  publisher: string;
+  developer: string;
+  genre: string;
+  released: string;
   isFinal: boolean;
   richPresencePatch: string;
   numAchievements: number;
@@ -107,18 +107,21 @@ export class RetroAchievementsService {
     this.username = username || process.env.RA_USERNAME || '';
     this.apiKey = apiKey || process.env.RA_API_KEY || '';
   }
-  
+
+  // Set credentials dynamically
   setCredentials(username: string, apiKey: string) {
     this.username = username;
     this.apiKey = apiKey;
   }
 
+  // Validate credentials are set
   private validateCredentials() {
     if (!this.username || !this.apiKey) {
       throw new Error('RetroAchievements credentials not configured. Please set RA_USERNAME and RA_API_KEY.');
     }
   }
 
+  // Build API URL with auth
   private buildUrl(endpoint: string, params: Record<string, any> = {}): string {
     const url = new URL(`${RA_API_BASE}/${endpoint}`);
     url.searchParams.append('z', this.username);
@@ -133,6 +136,7 @@ export class RetroAchievementsService {
     return url.toString();
   }
 
+  // Get user summary
   async getUserSummary(targetUsername?: string): Promise<RAUserSummary> {
     this.validateCredentials();
     const user = targetUsername || this.username;
@@ -143,22 +147,44 @@ export class RetroAchievementsService {
     return response.data;
   }
 
+  // Get user's game progress (all games they've played)
   async getUserProgress(targetUsername?: string): Promise<RAUserProgress[]> {
     this.validateCredentials();
     const user = targetUsername || this.username;
     
-    const url = this.buildUrl('API_GetUserProgress.php', { u: user });
+    // Use API_GetUserRecentlyPlayedGames instead of API_GetUserProgress
+    // This returns games with achievement data even if RecentlyPlayed is empty in summary
+    const url = this.buildUrl('API_GetUserRecentlyPlayedGames.php', { 
+      u: user,
+      c: 100  // Get up to 100 games
+    });
     const response = await axios.get(url);
     
-    const progressData = response.data;
+    // API returns an array directly
+    const gamesData = response.data;
     
-    if (!progressData || typeof progressData !== 'object') {
+    if (!Array.isArray(gamesData)) {
       return [];
     }
     
-    return Object.values(progressData);
+    // Map the response to our interface
+    return gamesData.map((game: any) => ({
+      gameId: game.GameID,
+      title: game.Title,
+      consoleId: game.ConsoleID,
+      consoleName: game.ConsoleName,
+      imageIcon: game.ImageIcon,
+      numPossibleAchievements: game.AchievementsTotal || game.NumPossibleAchievements,
+      possibleScore: game.PossibleScore,
+      numAchieved: game.NumAchieved,
+      scoreAchieved: game.ScoreAchieved,
+      numAchievedHardcore: game.NumAchievedHardcore,
+      scoreAchievedHardcore: game.ScoreAchievedHardcore,
+      lastPlayed: game.LastPlayed
+    }));
   }
 
+  // Get detailed game information
   async getGameInfo(gameId: number): Promise<RAGameInfo> {
     this.validateCredentials();
     
@@ -168,6 +194,7 @@ export class RetroAchievementsService {
     return response.data;
   }
 
+  // Get extended game info with rich presence
   async getGameInfoExtended(gameId: number): Promise<RAGameInfo> {
     this.validateCredentials();
     
@@ -177,6 +204,7 @@ export class RetroAchievementsService {
     return response.data;
   }
 
+  // Get user's achievements for a specific game
   async getUserGameAchievements(
     targetUsername: string, 
     gameId: number
@@ -192,6 +220,7 @@ export class RetroAchievementsService {
     return response.data;
   }
 
+  // Get list of all consoles
   async getConsoles(): Promise<RAConsole[]> {
     this.validateCredentials();
     
@@ -201,6 +230,7 @@ export class RetroAchievementsService {
     return response.data;
   }
 
+  // Get user's recently played games
   async getUserRecentlyPlayed(targetUsername?: string, count: number = 10): Promise<any[]> {
     this.validateCredentials();
     const user = targetUsername || this.username;
@@ -214,28 +244,35 @@ export class RetroAchievementsService {
     return response.data || [];
   }
 
+  // Get achievement icon URL
   getAchievementIconUrl(badgeName: string, locked: boolean = false): string {
     return `https://media.retroachievements.org/Badge/${badgeName}${locked ? '_lock' : ''}.png`;
   }
 
+  // Get game icon URL
   getGameIconUrl(iconPath: string): string {
     return `https://media.retroachievements.org${iconPath}`;
   }
 
+  // Get game box art URL
   getGameBoxArtUrl(boxArtPath: string): string {
     return `https://media.retroachievements.org${boxArtPath}`;
   }
 
+  // Helper: Calculate achievement completion percentage
   calculateCompletion(numAchieved: number, numPossible: number): number {
     if (numPossible === 0) return 0;
     return Math.round((numAchieved / numPossible) * 100);
   }
 
+  // Helper: Check if game is mastered (100% completion)
   isMastered(numAchieved: number, numPossible: number): boolean {
     return numAchieved === numPossible && numPossible > 0;
   }
 
+  // Helper: Format console name for display
   getConsoleDisplayName(consoleId: number, consoleName: string): string {
+    // Common console mappings for cleaner display
     const consoleMap: Record<number, string> = {
       1: 'Genesis/Mega Drive',
       2: 'Nintendo 64',
@@ -290,6 +327,7 @@ export class RetroAchievementsService {
     return consoleMap[consoleId] || consoleName;
   }
 
+  // Sync user's entire library
   async syncUserLibrary(targetUsername?: string): Promise<{
     summary: RAUserSummary;
     games: RAUserProgress[];
@@ -297,13 +335,19 @@ export class RetroAchievementsService {
     this.validateCredentials();
     const user = targetUsername || this.username;
     
+    console.log(`🎮 Syncing RetroAchievements library for user: ${user}`);
+    
     const [summary, games] = await Promise.all([
       this.getUserSummary(user),
       this.getUserProgress(user)
     ]);
     
+    console.log(`✅ Found ${games.length} games in ${user}'s library`);
+    console.log(`📊 Total Points: ${summary.totalPoints} (${summary.totalTruePoints} weighted)`);
+    
     return { summary, games };
   }
 }
 
+// Export singleton instance
 export const retroAchievementsService = new RetroAchievementsService();

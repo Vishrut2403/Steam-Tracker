@@ -35,11 +35,19 @@ const SyncRALibraryModal: React.FC<SyncRALibraryModalProps> = ({
       
       console.log('✅ Sync complete:', result);
       setSyncResult(result.summary);
-
-      setTimeout(() => {
-        onSync();
-        onClose();
-      }, 2000);
+      
+      // Only auto-close if games were found, otherwise let user see the result
+      if (result.summary.added > 0 || result.summary.updated > 0) {
+        setTimeout(() => {
+          onSync();
+          onClose();
+        }, 2000);
+      } else {
+        // No games found - just close after delay without refreshing
+        setTimeout(() => {
+          onClose();
+        }, 3000);
+      }
       
     } catch (err: any) {
       console.error('❌ Sync failed:', err);
@@ -59,8 +67,14 @@ const SyncRALibraryModal: React.FC<SyncRALibraryModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={handleClose}
+    >
+      <div 
+        className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="text-2xl font-bold mb-4 text-white">
           Sync RetroAchievements Library
         </h2>
@@ -137,7 +151,7 @@ const SyncRALibraryModal: React.FC<SyncRALibraryModalProps> = ({
           <>
             <div className="mb-4 p-4 bg-green-900 bg-opacity-50 border border-green-500 rounded">
               <h3 className="text-green-200 font-semibold mb-2">
-                Sync Successful!
+                ✅ Sync Successful!
               </h3>
               <div className="text-sm text-gray-300 space-y-1">
                 <p>Total Games Found: {syncResult.totalGames || 0}</p>
