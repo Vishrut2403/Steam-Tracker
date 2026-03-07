@@ -4,7 +4,7 @@ export const PS2_SERIALS: Record<string, string> = {
   // God of War series
   '2782': 'SCUS-97399',  // God of War (USA)
   '11240': 'SCUS-97399', // Alternative ID
-  '2841': 'SCUS-97481',  // God of War II (USA)
+  '2873': 'SCUS-97481',  // God of War II (USA)
   
   '2779': 'SCUS-97416',  // Ratchet & Clank: Up Your Arsenal
   '2885': 'SCUS-97465',  // Jak 3
