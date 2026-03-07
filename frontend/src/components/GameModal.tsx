@@ -17,10 +17,12 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
   const [editingImage, setEditingImage] = useState(game.headerImage || '');
   const [savingImage, setSavingImage] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [currentRating, setCurrentRating] = useState(game.rating || 0);
 
   useEffect(() => {
     setEditingReview(game.review || '');
     setEditingImage(game.headerImage || '');
+    setCurrentRating(game.rating || 0);
   }, [game]);
 
   const updateStatus = async (status: string) => {
@@ -42,6 +44,9 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
   };
 
   const updateRating = async (rating: number) => {
+    // Update local state immediately for instant visual feedback
+    setCurrentRating(rating);
+    
     try {
       if (game.platform === 'steam' && game.appId) {
         await steamService.updateGameRating(steamId, game.appId, rating);
@@ -56,6 +61,8 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
       await onUpdate();
     } catch (err) {
       console.error('Failed to update rating');
+      // Revert on error
+      setCurrentRating(game.rating || 0);
     }
   };
 
@@ -167,8 +174,19 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
             ×
           </button>
 
-          <div className="absolute top-6 left-6">
+          <div className="absolute top-6 left-6 flex items-center gap-3">
             <PlatformBadge platform={game.platform} />
+            
+            {/* Achievement Completion Badge */}
+            {game.totalAchievements && game.totalAchievements > 0 && game.achievementPercentage === 100 && (
+              <div 
+                className="px-3 py-1.5 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-lg flex items-center gap-1.5 shadow-lg"
+                title="All achievements completed!"
+              >
+                <span className="text-white text-lg">🏆</span>
+                <span className="text-white text-xs font-bold">100%</span>
+              </div>
+            )}
           </div>
 
           {game.tier && (
@@ -316,7 +334,7 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
                   key={star}
                   onClick={() => updateRating(star)}
                   className={`flex-1 h-16 rounded-2xl flex items-center justify-center text-3xl transition-all duration-300 ${
-                    game.rating && game.rating >= star
+                    currentRating >= star
                       ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-2xl'
                       : 'bg-slate-800/50 border border-slate-700/50 text-gray-700 hover:bg-slate-700/50 hover:scale-[1.05]'
                   }`}

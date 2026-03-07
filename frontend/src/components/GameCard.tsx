@@ -60,8 +60,9 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
         </div>
 
         {is100Percent() && (
-          <div className="absolute top-3 right-3 w-11 h-11 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md shadow-yellow-500/50">
-            <span className="text-white text-xl font-bold">★</span>
+          <div className="absolute top-3 right-3 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-xl px-2 py-1 flex items-center gap-1 shadow-lg">
+            <span className="text-white text-base">🏆</span>
+            <span className="text-white text-[10px] font-bold">100%</span>
           </div>
         )}
 

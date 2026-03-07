@@ -8,6 +8,7 @@ interface AddGameMenuProps {
   onSyncRA?: () => void;
   onAddRAGame?: () => void;
   onSyncPCSX2?: () => void;
+  onSyncRPCS3?: () => void;  // NEW
   onAutoLinkISOs?: () => void;
 }
 
@@ -17,7 +18,8 @@ export const AddGameMenu: React.FC<AddGameMenuProps> = ({
   onSyncRA,
   onAddRAGame,
   onSyncPCSX2,
-  onAutoLinkISOs 
+  onSyncRPCS3,  // NEW
+  onAutoLinkISOs  // NEW
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showMinecraftModal, setShowMinecraftModal] = useState(false);
@@ -43,7 +45,7 @@ export const AddGameMenu: React.FC<AddGameMenuProps> = ({
               }}
               className="w-full text-left px-4 py-2 hover:bg-slate-700/50 text-gray-300 hover:text-white transition-colors"
             >
-              Add Minecraft World
+              ⛏️ Add Minecraft World
             </button>
 
             <button
@@ -53,7 +55,7 @@ export const AddGameMenu: React.FC<AddGameMenuProps> = ({
               }}
               className="w-full text-left px-4 py-2 hover:bg-slate-700/50 text-gray-300 hover:text-white transition-colors"
             >
-              Add Apple Game
+              🍎 Add Apple Game
             </button>
 
             {/* RetroAchievements Section */}
@@ -71,7 +73,7 @@ export const AddGameMenu: React.FC<AddGameMenuProps> = ({
                     }}
                     className="w-full text-left px-4 py-2 hover:bg-slate-700/50 text-gray-300 hover:text-white transition-colors"
                   >
-                    Sync RA Library
+                    🎮 Sync RA Library
                   </button>
                 )}
 
@@ -93,7 +95,7 @@ export const AddGameMenu: React.FC<AddGameMenuProps> = ({
             {(onSyncPCSX2 || onAutoLinkISOs) && (
               <div className="border-t border-slate-700/50">
                 <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  PCSX2
+                  PCSX2 (PS2)
                 </div>
 
                 {onAutoLinkISOs && (
@@ -104,7 +106,7 @@ export const AddGameMenu: React.FC<AddGameMenuProps> = ({
                     }}
                     className="w-full text-left px-4 py-2 hover:bg-slate-700/50 text-gray-300 hover:text-white transition-colors"
                   >
-                    Auto-Link ISOs
+                    🔗 Auto-Link ISOs
                   </button>
                 )}
 
@@ -116,9 +118,28 @@ export const AddGameMenu: React.FC<AddGameMenuProps> = ({
                     }}
                     className="w-full text-left px-4 py-2 hover:bg-slate-700/50 text-gray-300 hover:text-white transition-colors"
                   >
-                    Sync Playtime
+                    🕹️ Sync Playtime
                   </button>
                 )}
+              </div>
+            )}
+
+            {/* RPCS3 Section */}
+            {onSyncRPCS3 && (
+              <div className="border-t border-slate-700/50">
+                <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  RPCS3 (PS3)
+                </div>
+
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    onSyncRPCS3();
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-slate-700/50 text-gray-300 hover:text-white transition-colors"
+                >
+                  🎮 Sync Playtime
+                </button>
               </div>
             )}
           </div>
