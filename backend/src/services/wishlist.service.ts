@@ -1,7 +1,6 @@
 import prisma from '../prisma';
 
 class WishlistService {
-  // Get all wishlist items for user 
   async getUserWishlist(userId: string) {
     const items = await prisma.steamWishlist.findMany({
       where: { userId },
@@ -11,7 +10,6 @@ class WishlistService {
     return items;
   }
 
-  // Create new wishlist item 
   async createWishlistItem(userId: string, data: {
     name: string;
     tags: string[];
@@ -36,7 +34,6 @@ class WishlistService {
     return item;
   }
 
-  // Update wishlist item 
   async updateWishlistItem(id: string, userId: string, data: {
     name?: string;
     tags?: string[];
@@ -69,7 +66,6 @@ class WishlistService {
     return updated;
   }
 
-  // Delete wishlist item 
   async deleteWishlistItem(id: string, userId: string) {
     const existing = await prisma.steamWishlist.findFirst({
       where: { id, userId },
@@ -86,7 +82,6 @@ class WishlistService {
     return { success: true, id };
   }
 
-  // Get single wishlist item 
   async getWishlistItem(id: string, userId: string) {
     const item = await prisma.steamWishlist.findFirst({
       where: { id, userId },

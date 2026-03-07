@@ -16,7 +16,6 @@ interface KnapsackResult {
 }
 
 class KnapsackService {
-  // 0/1 Knapsack Dynamic Programming 
   solve(items: KnapsackItem[], budget: number): KnapsackResult {
     const n = items.length;
 
@@ -74,7 +73,6 @@ class KnapsackService {
     };
   }
 
-  // Greedy approximation 
   solveGreedy(items: KnapsackItem[], budget: number): KnapsackResult {
     const sorted = [...items]
       .map((item) => ({
@@ -104,7 +102,6 @@ class KnapsackService {
     };
   }
 
-  // Smart solver: DP or greedy based on size 
   optimizeBudget(items: KnapsackItem[], budget: number): KnapsackResult {
     if (items.length <= 50 && budget <= 10000) {
       return this.solve(items, budget);

@@ -9,6 +9,9 @@ import recommendationRoutes from './routes/recommendation.routes';
 import wishlistRoutes from './routes/wishlist.routes';
 import steamRoutes from './routes/steam.routes';
 import authRoutes from './routes/auth.routes';
+import multiplatformRoutes from './routes/multiplatform.routes';
+import retroAchievementsRoutes from './routes/retroachievements.routes';
+import pcsx2Routes from './routes/pcsx2.routes';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
@@ -36,6 +39,10 @@ app.use('/api/steam', steamRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/multiplatform', multiplatformRoutes);
+app.use('/api/retroachievements', retroAchievementsRoutes);
+app.use('/api/pcsx2', pcsx2Routes);
+
 
 if (isProd) {
 

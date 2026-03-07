@@ -15,21 +15,25 @@
   "type": "commonjs",
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",
-    "@prisma/client": "^7.3.0",
+    "@prisma/client": "^6.19.2",
+    "adm-zip": "^0.5.16",
     "axios": "^1.13.4",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
+    "ini": "^6.0.0",
     "node-cache": "^5.1.2",
     "pg": "^8.18.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/ini": "^4.1.1",
     "@types/node": "^25.1.0",
-    "prisma": "^7.3.0",
+    "prisma": "^6.19.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }

@@ -4,7 +4,6 @@ import knapsackService from '../services/knapsack.service';
 
 const router = Router();
 
-// Get recommendations with scoring
 router.get('/:userId', async (req: Request, res: Response) => {
   try {
     const userId = req.params.userId as string;
@@ -29,7 +28,6 @@ router.get('/:userId', async (req: Request, res: Response) => {
   }
 });
 
-// Optimize budget with knapsack 
 router.post('/:userId/optimize', async (req: Request, res: Response) => {
   try {
     const userId = req.params.userId as string;
@@ -45,7 +43,6 @@ router.post('/:userId/optimize', async (req: Request, res: Response) => {
       return;
     }
 
-    // Get scored recommendations
     const recommendations = await recommendationService.getRecommendations(userId);
 
     if (recommendations.length === 0) {
@@ -61,7 +58,6 @@ router.post('/:userId/optimize', async (req: Request, res: Response) => {
       return;
     }
 
-    // Convert to knapsack items
     const items = recommendations.map((rec) => ({
       id: rec.id,
       name: rec.name,
@@ -72,10 +68,8 @@ router.post('/:userId/optimize', async (req: Request, res: Response) => {
       discountPercent: rec.discountPercent,
     }));
 
-    // Run knapsack optimization
     const result = knapsackService.optimizeBudget(items, budget);
 
-    // Enrich with full recommendation data
     const selectedGames = result.selectedGames.map((item) => {
       const fullData = recommendations.find((r) => r.id === item.id);
       return fullData;

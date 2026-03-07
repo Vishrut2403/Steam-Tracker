@@ -4,7 +4,6 @@ import prisma from '../prisma';
 
 const router = Router();
 
-// Helper: Auto-calculate tier from rating
 const getTierFromRating = (rating: number | null): string | null => {
   if (!rating) return null;
   const tierMap: { [key: number]: string } = {
@@ -17,7 +16,6 @@ const getTierFromRating = (rating: number | null): string | null => {
   return tierMap[rating] || null;
 };
 
-// Fetch library from Steam API and save to DB 
 router.get('/library/:steamId', async (req: Request, res: Response) => {
   try {
     const steamId = req.params.steamId as string;
@@ -43,10 +41,10 @@ router.get('/library/:steamId', async (req: Request, res: Response) => {
   }
 });
 
-// Get enriched library from DB 
 router.get('/library/:steamId/enriched', async (req: Request, res: Response) => {
   try {
     const steamId = req.params.steamId as string;
+    const platform = req.query.platform as string | undefined;
 
     if (!steamId) {
       res.status(400).json({ error: 'Steam ID is required' });
@@ -57,6 +55,7 @@ router.get('/library/:steamId/enriched', async (req: Request, res: Response) => 
       where: { steamId },
       include: {
         libraryGames: {
+          where: platform ? { platform } : undefined,
           orderBy: [
             { status: 'asc' },
             { playtimeForever: 'desc' }
@@ -72,6 +71,7 @@ router.get('/library/:steamId/enriched', async (req: Request, res: Response) => 
 
     res.json({
       success: true,
+      userId: user.id,
       count: user.libraryGames.length,
       games: user.libraryGames,
     });
@@ -83,7 +83,42 @@ router.get('/library/:steamId/enriched', async (req: Request, res: Response) => 
   }
 });
 
-// Update price paid 
+router.get('/library/:steamId/platforms', async (req: Request, res: Response) => {
+  try {
+    const steamId = req.params.steamId as string;
+
+    if (!steamId) {
+      res.status(400).json({ error: 'Steam ID is required' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { steamId } });
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    const platforms = await prisma.libraryGame.groupBy({
+      by: ['platform'],
+      where: { userId: user.id },
+      _count: true,
+    });
+
+    res.json({
+      success: true,
+      platforms: platforms.map(p => ({
+        platform: p.platform,
+        count: p._count,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to fetch platforms',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 router.patch('/library/:steamId/game/:appId/price', async (req: Request, res: Response) => {
   try {
     const steamId = req.params.steamId as string;
@@ -132,7 +167,6 @@ router.patch('/library/:steamId/game/:appId/price', async (req: Request, res: Re
   }
 });
 
-// Update game status 
 router.patch('/library/:steamId/game/:appId/status', async (req: Request, res: Response) => {
   try {
     const steamId = req.params.steamId as string;
@@ -171,7 +205,6 @@ router.patch('/library/:steamId/game/:appId/status', async (req: Request, res: R
   }
 });
 
-// Update game rating
 router.patch('/library/:steamId/game/:appId/rating', async (req: Request, res: Response) => {
   try {
     const steamId = req.params.steamId as string;
@@ -205,7 +238,6 @@ router.patch('/library/:steamId/game/:appId/rating', async (req: Request, res: R
   }
 });
 
-// Update user tags for a game 
 router.patch('/library/:steamId/game/:appId/tags', async (req: Request, res: Response) => {
   try {
     const steamId = req.params.steamId as string;
@@ -250,7 +282,6 @@ router.patch('/library/:steamId/game/:appId/tags', async (req: Request, res: Res
   }
 });
 
-// Update game review
 router.patch('/library/:steamId/game/:appId/review', async (req: Request, res: Response) => {
   try {
     const steamId = req.params.steamId as string;
@@ -287,7 +318,42 @@ router.patch('/library/:steamId/game/:appId/review', async (req: Request, res: R
   }
 });
 
-// Fetch wishlist 
+router.patch('/library/:steamId/game/:appId/image', async (req: Request, res: Response) => {
+  try {
+    const steamId = req.params.steamId as string;
+    const appId = req.params.appId as string;
+    const { headerImage } = req.body;
+
+    if (!headerImage || typeof headerImage !== 'string') {
+      res.status(400).json({ error: 'Valid image URL is required' });
+      return;
+    }
+
+    if (!headerImage.startsWith('http://') && !headerImage.startsWith('https://')) {
+      res.status(400).json({ error: 'Image URL must be a valid HTTP/HTTPS URL' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { steamId } });
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    const updated = await prisma.libraryGame.update({
+      where: { userId_appId: { userId: user.id, appId: String(appId) } },
+      data: { headerImage },
+    });
+
+    res.json({ success: true, game: updated });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to update image',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 router.get('/wishlist/:steamId', async (req: Request, res: Response) => {
   try {
     const steamId = req.params.steamId as string;
@@ -313,7 +379,6 @@ router.get('/wishlist/:steamId', async (req: Request, res: Response) => {
   }
 });
 
-// Get player info
 router.get('/player/:steamId', async (req: Request, res: Response) => {
   try {
     const steamId = req.params.steamId as string;

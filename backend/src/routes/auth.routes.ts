@@ -12,7 +12,6 @@ const FRONTEND_URL =
     ? 'http://localhost:3001'
     : 'http://localhost:5173';
 
-// Initiates Steam OpenID authentication flow
 router.get('/steam', (req: Request, res: Response) => {
   const params = new URLSearchParams({
     'openid.ns': 'http://specs.openid.net/auth/2.0',
@@ -28,7 +27,6 @@ router.get('/steam', (req: Request, res: Response) => {
   res.redirect(redirectUrl);
 });
 
-// Handles Steam OpenID verification callback
 router.get('/callback', async (req: Request, res: Response) => {
   try {
     const params = req.query;
@@ -61,7 +59,6 @@ router.get('/callback', async (req: Request, res: Response) => {
       return res.redirect(`${FRONTEND_URL}?error=auth_failed`);
     }
 
-    // Extract 64-bit SteamID from claimed_id URL
     const claimedId = params['openid.claimed_id'] as string;
     const steamId = claimedId.split('/').pop();
 
