@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import prisma from '../prisma';
 import { PCSX2Service } from '../services/pcsx2.service';
 import { ISOSerialDetector } from '../services/iso-serial-detector.service';
+import { sessionTrackingService } from '../services/session-tracking.service';
 
 const router = Router();
 const pcsx2Service = new PCSX2Service();
@@ -49,6 +50,7 @@ router.post('/sync', async (req: Request, res: Response) => {
     }
 
     if (!pcsx2Service.fileExists()) {
+      console.error(`File not found at: ${pcsx2Service['playtimeFilePath']}`);
       res.status(404).json({
         success: false,
         error: `PCSX2 playtime file not found at: ${pcsx2Service['playtimeFilePath']}. Make sure PCSX2 has been run at least once.`
@@ -97,6 +99,17 @@ router.post('/sync', async (req: Request, res: Response) => {
 
       if (game) {
         const playtimeMinutes = Math.round(entry.playtimeSeconds / 60);
+        const oldPlaytime = game.playtimeForever || 0;
+        
+        if (playtimeMinutes > oldPlaytime) {
+          await sessionTrackingService.trackSession({
+            userId: game.userId,
+            gameId: game.id,
+            platform: game.platform,
+            newPlaytimeMinutes: playtimeMinutes,
+            oldPlaytimeMinutes: oldPlaytime
+          });
+        }
         
         await prisma.libraryGame.update({
           where: { id: game.id },
@@ -125,7 +138,7 @@ router.post('/sync', async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
-    console.error('❌ Error syncing PCSX2 playtimes:', error);
+    console.error('Error syncing PCSX2 playtimes:', error);
     console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,

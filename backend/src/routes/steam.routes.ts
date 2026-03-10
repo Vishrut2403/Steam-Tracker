@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import steamService from '../services/steam.service';
 import prisma from '../prisma';
+import { sessionTrackingService } from '../services/session-tracking.service';
 
 const router = Router();
 
@@ -26,6 +27,45 @@ router.get('/library/:steamId', async (req: Request, res: Response) => {
     }
 
     const library = await steamService.getUserLibrary(steamId);
+    
+    const user = await prisma.user.findUnique({ where: { steamId } });
+    
+    if (user) {
+      
+      for (const steamGame of library) {
+        try {
+          const existingGame = await prisma.libraryGame.findUnique({
+            where: {
+              userId_appId: {
+                userId: user.id,
+                appId: String(steamGame.appid)
+              }
+            }
+          });
+
+          const newPlaytime = steamGame.playtime_forever || 0;
+
+          if (existingGame && newPlaytime > 0) {
+            const oldPlaytime = existingGame.playtimeForever || 0;
+            
+            if (newPlaytime > oldPlaytime) {
+              const delta = newPlaytime - oldPlaytime;
+              
+              await sessionTrackingService.trackSession({
+                userId: user.id,
+                gameId: existingGame.id,
+                platform: 'steam',
+                newPlaytimeMinutes: newPlaytime,
+                oldPlaytimeMinutes: oldPlaytime
+              });
+            }
+          }
+        } catch (error) {
+          console.error(`   ⚠️ Failed to track session for ${steamGame.name}:`, error);
+        }
+      }
+    }
+
     await steamService.saveLibrary(steamId, library);
 
     res.json({

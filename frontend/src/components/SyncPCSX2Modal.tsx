@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import axios from 'axios';
 
 interface SyncPCSX2ModalProps {
   isOpen: boolean;
@@ -25,21 +24,25 @@ const SyncPCSX2Modal: React.FC<SyncPCSX2ModalProps> = ({ isOpen, onClose, onSync
     setSyncResult(null);
 
     try {
-      console.log('🕹️ Starting PCSX2 playtime sync...');
       
-      const response = await axios.post('http://localhost:3001/api/pcsx2/sync', { userId });
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/pcsx2/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
       
-      console.log('✅ PCSX2 sync complete:', response.data);
-      setSyncResult(response.data.summary);
+      const data = await response.json();
       
-      // Auto-close after showing results
+      setSyncResult(data.summary);
+
       setTimeout(() => {
         onSync();
         onClose();
       }, 2000);
       
     } catch (err: any) {
-      console.error('❌ PCSX2 sync failed:', err);
+      console.error('PCSX2 sync failed:', err);
       setError(err.response?.data?.error || 'Failed to sync PCSX2 playtimes. Make sure PCSX2 is installed.');
     } finally {
       setIsLoading(false);
@@ -96,7 +99,7 @@ const SyncPCSX2Modal: React.FC<SyncPCSX2ModalProps> = ({ isOpen, onClose, onSync
 
         {syncResult && (
           <div className="mb-4 p-4 bg-green-900/50 border border-green-500/30 rounded-lg">
-            <h3 className="text-green-200 font-semibold mb-2">✅ Sync Successful!</h3>
+            <h3 className="text-green-200 font-semibold mb-2">Sync Successful!</h3>
             <div className="text-sm text-gray-300 space-y-1">
               <p>Total Games Found: {syncResult.total}</p>
               <p>Updated: {syncResult.updated}</p>

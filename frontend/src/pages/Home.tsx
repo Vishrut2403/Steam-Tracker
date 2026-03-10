@@ -16,6 +16,7 @@ import { GameModal } from '../components/GameModal';
 import { GameTable } from '../components/GameTable';
 import { useGameFilters } from '../hooks/useGameFilters';
 import type { LibraryGame, TabType, SortField, SortDirection } from '../types/games.types';
+import { Analytics } from '../components/Analytics';
 
 function Home() {
   const [steamId, setSteamId] = useState('');
@@ -37,6 +38,8 @@ function Home() {
   
   const [sortField, setSortField] = useState<SortField>('playtime');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -94,6 +97,33 @@ function Home() {
       setLibrary(data);
     } catch (err) {
       console.error('Failed to refresh');
+    }
+  };
+
+  // PCSX2 Sync Handler
+  const handleSyncPCSX2 = async () => {
+    try {
+      setLoading(true);
+      
+      const response = await fetch(`${API_URL}/api/pcsx2/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: library?.userId })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('✅ PCSX2 sync complete:', data.summary);
+        await refreshFromDB(); // Refresh library to show updated playtime
+        setShowSyncPCSX2Modal(false);
+      } else {
+        console.error('❌ PCSX2 sync failed:', data.error);
+      }
+    } catch (error) {
+      console.error('❌ Error syncing PCSX2:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -166,6 +196,7 @@ function Home() {
                 { key: 'dashboard', label: 'Dashboard' },
                 { key: 'wishlist', label: 'Wishlist' },
                 { key: 'recommendations', label: 'Recommendations' },
+                { key: 'analytics', label: 'Analytics' },
               ].map(({ key, label }) => (
                 <button
                   key={key}
@@ -185,7 +216,7 @@ function Home() {
             </div>
 
             {/* Toolbar */}
-            {activeTab !== 'wishlist' && activeTab !== 'recommendations' && (
+            {activeTab !== 'wishlist' && activeTab !== 'recommendations' && activeTab !== 'analytics' && (
               <div className="mb-8 space-y-4">
                 {/* Status Filters */}
                 <div className="flex items-center justify-between gap-4">
@@ -331,8 +362,13 @@ function Home() {
               <RecommendationSystem userId={library?.userId || ''} />
             )}
 
+            {/* Analytics */}
+            {activeTab === 'analytics' && !loading && (
+              <Analytics games={library?.games || []} />
+            )}
+
             {/* Empty State */}
-            {filteredGames.length === 0 && !loading && activeTab !== 'wishlist' && activeTab !== 'recommendations' && (
+            {filteredGames.length === 0 && !loading && activeTab !== 'wishlist' && activeTab !== 'recommendations' && activeTab !== 'analytics' && (
               <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center mx-auto px-6">
                   <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center shadow-md">
@@ -375,7 +411,7 @@ function Home() {
       <SyncPCSX2Modal
         isOpen={showSyncPCSX2Modal}
         onClose={() => setShowSyncPCSX2Modal(false)}
-        onSync={refreshFromDB}
+        onSync={handleSyncPCSX2}
         userId={library?.userId || ''}
       />
 

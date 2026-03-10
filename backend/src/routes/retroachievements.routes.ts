@@ -5,7 +5,6 @@ import { getSerialByGameId, getSerialByName } from '../utils/ps2-serials';
 
 const router = express.Router();
 
-// GET /api/retroachievements/user/:username - Get user summary
 router.get('/user/:username', async (req: Request, res: Response): Promise<void> => {
   try {
     const username = Array.isArray(req.params.username) ? req.params.username[0] : req.params.username;
@@ -25,7 +24,6 @@ router.get('/user/:username', async (req: Request, res: Response): Promise<void>
   }
 });
 
-// GET /api/retroachievements/games/:username - Get user's game progress
 router.get('/games/:username', async (req: Request, res: Response): Promise<void> => {
   try {
     const username = Array.isArray(req.params.username) ? req.params.username[0] : req.params.username;
@@ -87,14 +85,14 @@ router.post('/sync', async (req: Request, res: Response): Promise<void> => {
     }
     
     const { summary, games } = await retroAchievementsService.syncUserLibrary(username);
-    
+
     let added = 0;
     let updated = 0;
     let skipped = 0;
     
     for (const game of games) {
       try {
-        
+
         const completionPercent = retroAchievementsService.calculateCompletion(
           game.numAchieved,
           game.numPossibleAchievements
@@ -106,6 +104,11 @@ router.post('/sync', async (req: Request, res: Response): Promise<void> => {
         );
         
         const headerImage = retroAchievementsService.getGameIconUrl(game.imageIcon);
+        
+        const ps2Serial = getSerialByGameId(game.gameId) || getSerialByName(game.title);
+        if (ps2Serial) {
+          console.log(`   🎮 Found serial: ${ps2Serial}`);
+        }
         
         const platformData = {
           consoleId: game.consoleId,
@@ -120,7 +123,8 @@ router.post('/sync', async (req: Request, res: Response): Promise<void> => {
           numAchievedHardcore: game.numAchievedHardcore,
           isMastered,
           lastPlayed: game.lastPlayed || null,
-          imageIcon: game.imageIcon
+          imageIcon: game.imageIcon,
+          serial: ps2Serial  
         };
         
         const existing = await prisma.libraryGame.findUnique({
@@ -164,7 +168,7 @@ router.post('/sync', async (req: Request, res: Response): Promise<void> => {
         }
         
       } catch (gameError: any) {
-        console.error(`   ❌ Failed to process game ${game.title}:`, gameError.message);
+        console.error(`Failed to process game ${game.title}:`, gameError.message);
         skipped++;
       }
     }
@@ -202,12 +206,12 @@ router.post('/game', async (req: Request, res: Response): Promise<void> => {
       });
       return;
     }
-
     let gameInfo;
     try {
       gameInfo = await retroAchievementsService.getGameInfo(parseInt(gameId));
+      console.log(`Got game info:`, gameInfo);
     } catch (err: any) {
-      console.error('❌ Failed to fetch game info:', err.message);
+      console.error('Failed to fetch game info:', err.message);
       res.status(404).json({
         success: false,
         error: `Failed to fetch game ${gameId} from RetroAchievements. Check if game ID is valid.`
@@ -238,16 +242,10 @@ router.post('/game', async (req: Request, res: Response): Promise<void> => {
 
     let userProgress = null;
     if (username) {
-      try {
-        console.log(`📊 Fetching user progress for ${username}...`);
         const allProgress = await retroAchievementsService.getUserProgress(username);
         userProgress = allProgress.find(g => g.gameId === parseInt(gameId));
-        console.log(`✅ User progress: ${userProgress ? 'Found' : 'Not found (new game)'}`);
-      } catch (err) {
-        console.log('⚠️ Could not fetch user progress, using defaults');
-      }
     }
-
+    
     const numAchieved = userProgress?.numAchieved || 0;
     const numPossible = userProgress?.numPossibleAchievements || 0;
     const completionPercent = retroAchievementsService.calculateCompletion(numAchieved, numPossible);
@@ -258,9 +256,8 @@ router.post('/game', async (req: Request, res: Response): Promise<void> => {
         ? retroAchievementsService.getGameIconUrl(imageIcon)
         : null;
     
+    // Try to get PS2 serial for PCSX2 matching
     const ps2Serial = getSerialByGameId(gameId) || getSerialByName(title);
-    if (ps2Serial) {
-    }
     
     const platformData = {
       consoleId: consoleId,
@@ -281,7 +278,7 @@ router.post('/game', async (req: Request, res: Response): Promise<void> => {
       scoreAchieved: userProgress?.scoreAchieved || 0,
       numAchievedHardcore: userProgress?.numAchievedHardcore || 0,
       scoreAchievedHardcore: userProgress?.scoreAchievedHardcore || 0,
-      serial: ps2Serial
+      serial: ps2Serial  
     };
     
     const game = await prisma.libraryGame.upsert({

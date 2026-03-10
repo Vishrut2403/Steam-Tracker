@@ -14,6 +14,7 @@ import retroAchievementsRoutes from './routes/retroachievements.routes';
 import pcsx2Routes from './routes/pcsx2.routes';
 import rpcs3Routes from './routes/rpcs3.routes';
 import ppssppRoutes from './routes/ppsspp.routes';
+import sessionsRoutes from './routes/sessions.routes';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
@@ -36,7 +37,6 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-// Register all routes
 app.use('/api/steam', steamRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/recommendations', recommendationRoutes);
@@ -46,6 +46,7 @@ app.use('/api/retroachievements', retroAchievementsRoutes);
 app.use('/api/pcsx2', pcsx2Routes);
 app.use('/api/rpcs3', rpcs3Routes);
 app.use('/api/ppsspp', ppssppRoutes);
+app.use('/api/sessions', sessionsRoutes);
 
 if (isProd) {
   const frontendPath = path.join(__dirname, '../../frontend');
