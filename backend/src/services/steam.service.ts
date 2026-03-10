@@ -72,7 +72,6 @@ class SteamService {
     }
   }
 
-  // Fetch achievements for a single game 
   private async getGameAchievements(steamId: string, appId: number): Promise<AchievementData | null> {
     const cacheKey = `achievements_${steamId}_${appId}`;
     const cached = cache.get<AchievementData>(cacheKey);
@@ -117,7 +116,6 @@ class SteamService {
     }
   }
 
-  // Find or create user in DB
   private async findOrCreateUser(steamId: string, username?: string) {
     const user = await prisma.user.upsert({
       where: { steamId },
@@ -133,7 +131,6 @@ class SteamService {
     return user;
   }
 
-  // Save library games to DB
   async saveLibrary(steamId: string, games: SteamGame[]) {
     const user = await this.findOrCreateUser(steamId);
 
@@ -153,6 +150,8 @@ class SteamService {
           },
           create: {
             userId: user.id,
+            platform: 'steam',
+            platformGameId: String(game.appid),
             appId: String(game.appid),
             name: game.name,
             playtimeForever: game.playtime_forever,
@@ -162,12 +161,9 @@ class SteamService {
           },
         });
     }
-
-    // Fetch achievements in background (async, don't await)
     this.fetchAchievementsInBackground(steamId, user.id, games).catch(() => {});
   }
 
-  // Fetch achievements in background
   private async fetchAchievementsInBackground(steamId: string, userId: string, games: SteamGame[]) {
 
     for (const game of games) {
@@ -192,7 +188,6 @@ class SteamService {
     }
   }
 
-  // Fetch library from Steam API
   async getUserLibrary(steamId: string): Promise<SteamGame[]> {
     const cacheKey = `library_${steamId}`;
     const cached = cache.get<SteamGame[]>(cacheKey);
@@ -222,7 +217,6 @@ class SteamService {
     }
   }
 
-  // Fetch wishlist app IDs from Steam Store 
   async getUserWishlist(steamId: string): Promise<number[]> {
     const cacheKey = `wishlist_${steamId}`;
     const cached = cache.get<number[]>(cacheKey);
@@ -257,7 +251,6 @@ class SteamService {
     }
   }
 
-  // Fetch price 
   private async getAppDetails(appId: number): Promise<StoreAppDetails> {
     const cacheKey = `appdetails_${appId}`;
     const cached = cache.get<StoreAppDetails>(cacheKey);
@@ -280,7 +273,6 @@ class SteamService {
     }
   }
 
-  // Enrich wishlist: fetch details for each app ID 
   async getEnrichedWishlist(steamId: string): Promise<WishlistGameData[]> {
     const appIds = await this.getUserWishlist(steamId);
 
@@ -317,7 +309,6 @@ class SteamService {
     return enriched;
   }
 
-// Save enriched wishlist to DB
 async saveWishlist(steamId: string, games: WishlistGameData[]) {
   const user = await this.findOrCreateUser(steamId);
 
@@ -347,7 +338,6 @@ async saveWishlist(steamId: string, games: WishlistGameData[]) {
   }
 }
 
-  // Fetch player info from Steam API 
   async getPlayerSummary(steamId: string) {
     const cacheKey = `player_${steamId}`;
     const cached = cache.get(cacheKey);
