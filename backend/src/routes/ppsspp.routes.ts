@@ -66,13 +66,10 @@ router.post('/sync', async (req: Request, res: Response) => {
 
     for (const ppssppGame of ppssppGames) {
       
-      const normalizedPPSSPPName = ppssppGame.gameName.toLowerCase().replace(/[®™:]/g, '').trim();
-      
-      const matchedGame = allPSPGames.find(game => {
-        const normalizedGameName = game.name.toLowerCase().replace(/[®™:]/g, '').trim();
-        return normalizedGameName.includes(normalizedPPSSPPName) || 
-               normalizedPPSSPPName.includes(normalizedGameName);
-      });
+    const matchedGame = allPSPGames.find(game => {
+      const gameSerial = (game.platformData as any)?.serial;
+      return gameSerial && gameSerial === ppssppGame.serial;
+    });
 
       if (matchedGame) {
         const playtimeMinutes = Math.round(Number(ppssppGame.playtimeSeconds || 0) / 60);

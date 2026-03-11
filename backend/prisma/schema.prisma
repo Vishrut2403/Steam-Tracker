@@ -18,6 +18,7 @@ model User {
   libraryGames    LibraryGame[]
   wishlistGames   SteamWishlist[]
   gameSessions    GameSession[]
+  journalEntries  GameJournalEntry[]
 
   @@map("users")
 }
@@ -71,6 +72,7 @@ model LibraryGame {
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   gameSessions GameSession[]
+  journalEntries GameJournalEntry[]
 
   @@unique([userId, platform, platformGameId])
   @@unique([userId, appId])
@@ -83,7 +85,6 @@ model LibraryGame {
   @@map("library_games")
 }
 
-// NEW: Track daily gaming sessions
 model GameSession {
   id        String   @id @default(uuid())
   userId    String
@@ -105,6 +106,27 @@ model GameSession {
   @@index([userId, date])
   @@index([platform])
   @@map("game_sessions")
+}
+
+// Game journal entries - personal notes for each game
+model GameJournalEntry {
+  id        String   @id @default(uuid())
+  userId    String
+  gameId    String
+  
+  heading   String   // Entry heading/title (e.g., "End of Act 1")
+  content   String   @db.Text // Journal entry text (can be long)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game LibraryGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("game_journal_entries")
 }
 
 model SteamWishlist {

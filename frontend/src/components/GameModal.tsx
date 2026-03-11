@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import steamService from '../services/steam.service';
 import { PlatformBadge } from './PlatformBadge';
+import { GameJournal } from './GameJournal';
 import type { LibraryGame } from '../types/games.types';
 import { getGameImage, getTierColor, getConsoleDisplay } from '../utils/gameHelpers';
 
@@ -11,7 +12,10 @@ interface GameModalProps {
   steamId: string;
 }
 
+type TabType = 'overview' | 'journal';
+
 export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, steamId }) => {
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [editingReview, setEditingReview] = useState(game.review || '');
   const [savingReview, setSavingReview] = useState(false);
   const [editingImage, setEditingImage] = useState(game.headerImage || '');
@@ -23,6 +27,7 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
     setEditingReview(game.review || '');
     setEditingImage(game.headerImage || '');
     setCurrentRating(game.rating || 0);
+    setActiveTab('overview'); // Reset to overview when game changes
   }, [game]);
 
   const updateStatus = async (status: string) => {
@@ -194,169 +199,216 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
           )}
         </div>
 
+        {/* Tabs */}
+        <div className="border-b border-slate-800/50 px-8 pt-4">
+          <div className="flex gap-6">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`pb-3 px-1 font-semibold transition-colors relative ${
+                activeTab === 'overview'
+                  ? 'text-blue-400'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Overview
+              {activeTab === 'overview' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400" />
+              )}
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('journal')}
+              className={`pb-3 px-1 font-semibold transition-colors relative ${
+                activeTab === 'journal'
+                  ? 'text-blue-400'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              📝 Journal
+              {activeTab === 'journal' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400" />
+              )}
+            </button>
+          </div>
+        </div>
+
         <div className="p-8 space-y-8">
-          <div>
-            <h2 className="text-3xl font-bold text-white mb-2">{game.name}</h2>
-            {consoleDisplay && (
-              <span className="inline-block px-3 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg text-purple-300 text-sm font-medium">
-                {consoleDisplay}
-              </span>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
-              <p className="text-xs uppercase tracking-wider text-gray-400 mb-2 font-semibold">Playtime</p>
-              <p className="text-3xl font-bold text-white">
-                {game.platform === 'apple_gc'
-                  ? 'Not tracked'
-                  : game.platform === 'retroachievements' && game.playtimeForever > 0
-                    ? `${Math.round(game.playtimeForever / 60)}h`
-                    : game.platform === 'retroachievements'
-                      ? 'Not synced yet'
-                      : `${Math.round(game.playtimeForever / 60)}h`}
-              </p>
-            </div>
-
-            {game.pricePerHour && game.platform !== 'apple_gc' && game.platform !== 'retroachievements' && (
-              <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
-                <p className="text-xs uppercase tracking-wider text-gray-400 mb-2 font-semibold">Value</p>
-                <p className="text-3xl font-bold text-emerald-400">₹{game.pricePerHour.toFixed(2)}/h</p>
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <>
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2">{game.name}</h2>
+                {consoleDisplay && (
+                  <span className="inline-block px-3 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg text-purple-300 text-sm font-medium">
+                    {consoleDisplay}
+                  </span>
+                )}
               </div>
-            )}
-          </div>
 
-          {game.totalAchievements && game.totalAchievements > 0 && (
-            <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-semibold text-gray-300">Achievements</p>
-                <p className="text-sm font-semibold text-white">
-                  {game.completedAchievements} / {game.totalAchievements}
-                  <span className="text-gray-400 ml-2">({game.achievementPercentage}%)</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
+                  <p className="text-xs uppercase tracking-wider text-gray-400 mb-2 font-semibold">Playtime</p>
+                  <p className="text-3xl font-bold text-white">
+                    {game.platform === 'apple_gc'
+                      ? 'Not tracked'
+                      : game.platform === 'retroachievements' && game.playtimeForever > 0
+                        ? `${Math.round(game.playtimeForever / 60)}h`
+                        : game.platform === 'retroachievements'
+                          ? 'Not synced yet'
+                          : `${Math.round(game.playtimeForever / 60)}h`}
+                  </p>
+                </div>
+
+                {game.pricePerHour && game.platform !== 'apple_gc' && game.platform !== 'retroachievements' && (
+                  <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
+                    <p className="text-xs uppercase tracking-wider text-gray-400 mb-2 font-semibold">Value</p>
+                    <p className="text-3xl font-bold text-emerald-400">₹{game.pricePerHour.toFixed(2)}/h</p>
+                  </div>
+                )}
+              </div>
+
+              {game.totalAchievements && game.totalAchievements > 0 && (
+                <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-semibold text-gray-300">Achievements</p>
+                    <p className="text-sm font-semibold text-white">
+                      {game.completedAchievements} / {game.totalAchievements}
+                      <span className="text-gray-400 ml-2">({game.achievementPercentage}%)</span>
+                    </p>
+                  </div>
+                  <div className="h-3 bg-slate-700/50 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500"
+                      style={{ width: `${game.achievementPercentage || 0}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {game.userTags && game.userTags.length > 0 && (
+                <div>
+                  <p className="text-sm font-semibold text-gray-300 mb-3">Tags</p>
+                  <div className="flex flex-wrap gap-2">
+                    {game.userTags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-4 py-2 bg-slate-800/50 rounded-full border border-slate-700/50 text-sm font-medium text-gray-200"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Cover Image Editor */}
+              <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
+                <label className="block text-sm font-semibold text-gray-300 mb-3">Cover Image URL</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={editingImage}
+                    onChange={(e) => setEditingImage(e.target.value)}
+                    className="flex-1 px-4 py-3 bg-slate-900/50 rounded-xl border border-slate-700/50 text-white placeholder-gray-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-300"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                  <button
+                    onClick={handleSaveImage}
+                    disabled={savingImage}
+                    className="px-6 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl font-semibold hover:bg-slate-600/50 transition-all duration-300 disabled:opacity-50 text-white whitespace-nowrap"
+                  >
+                    {savingImage ? 'Saving...' : 'Update Image'}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Enter a direct URL to an image (must start with http:// or https://)
                 </p>
               </div>
-              <div className="h-3 bg-slate-700/50 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500"
-                  style={{ width: `${game.achievementPercentage || 0}%` }}
+
+              <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
+                <label className="block text-sm font-semibold text-gray-300 mb-3">Personal Review</label>
+                <textarea
+                  value={editingReview}
+                  onChange={(e) => setEditingReview(e.target.value)}
+                  className="w-full h-32 px-4 py-3 bg-slate-900/50 rounded-xl border border-slate-700/50 text-white placeholder-gray-500 resize-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-300"
+                  placeholder="Share your thoughts..."
+                  maxLength={2000}
                 />
-              </div>
-            </div>
-          )}
-
-          {game.userTags && game.userTags.length > 0 && (
-            <div>
-              <p className="text-sm font-semibold text-gray-300 mb-3">Tags</p>
-              <div className="flex flex-wrap gap-2">
-                {game.userTags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-4 py-2 bg-slate-800/50 rounded-full border border-slate-700/50 text-sm font-medium text-gray-200"
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-xs text-gray-400">{editingReview.length}/2000</span>
+                  <button
+                    onClick={handleSaveReview}
+                    disabled={savingReview}
+                    className="px-6 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl font-semibold hover:bg-slate-600/50 transition-all duration-300 disabled:opacity-50 text-white"
                   >
-                    {tag}
-                  </span>
-                ))}
+                    {savingReview ? 'Saving...' : 'Save Review'}
+                  </button>
+                </div>
               </div>
-            </div>
+
+              <div>
+                <p className="text-sm font-semibold text-gray-300 mb-3">Status</p>
+                <div className="grid grid-cols-4 gap-3">
+                  {(['playing', 'completed', 'backlog', 'unplayed'] as const).map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => updateStatus(status)}
+                      className={`px-4 py-3 rounded-xl font-semibold capitalize transition-all duration-300 ${
+                        game.status === status
+                          ? 'bg-blue-600/20 border border-blue-500/30 text-white shadow-md'
+                          : 'bg-slate-800/50 border border-slate-700/50 text-gray-400 hover:bg-slate-700/50 hover:text-white hover:border-slate-600/50'
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-gray-300 mb-3">Rating</p>
+                <div className="flex gap-3">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => updateRating(star)}
+                      className={`flex-1 h-16 rounded-2xl flex items-center justify-center text-3xl transition-all duration-300 ${
+                        currentRating >= star
+                          ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-2xl'
+                          : 'bg-slate-800/50 border border-slate-700/50 text-gray-700 hover:bg-slate-700/50 hover:scale-[1.05]'
+                      }`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Delete Button (only for non-Steam games) */}
+              {game.platform !== 'steam' && (
+                <div className="pt-4 border-t border-slate-800/50">
+                  <button
+                    onClick={handleDeleteGame}
+                    disabled={deleting}
+                    className="w-full px-6 py-3 bg-red-900/20 border border-red-500/30 text-red-300 rounded-xl font-semibold hover:bg-red-900/30 transition-all duration-300 disabled:opacity-50"
+                  >
+                    {deleting ? 'Deleting...' : '🗑️ Delete Game'}
+                  </button>
+                  <p className="text-xs text-gray-500 text-center mt-2">
+                    This action cannot be undone
+                  </p>
+                </div>
+              )}
+            </>
           )}
 
-          {/* Cover Image Editor */}
-          <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
-            <label className="block text-sm font-semibold text-gray-300 mb-3">Cover Image URL</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={editingImage}
-                onChange={(e) => setEditingImage(e.target.value)}
-                className="flex-1 px-4 py-3 bg-slate-900/50 rounded-xl border border-slate-700/50 text-white placeholder-gray-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-300"
-                placeholder="https://example.com/image.jpg"
-              />
-              <button
-                onClick={handleSaveImage}
-                disabled={savingImage}
-                className="px-6 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl font-semibold hover:bg-slate-600/50 transition-all duration-300 disabled:opacity-50 text-white whitespace-nowrap"
-              >
-                {savingImage ? 'Saving...' : 'Update Image'}
-              </button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Enter a direct URL to an image (must start with http:// or https://)
-            </p>
-          </div>
-
-          <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
-            <label className="block text-sm font-semibold text-gray-300 mb-3">Personal Review</label>
-            <textarea
-              value={editingReview}
-              onChange={(e) => setEditingReview(e.target.value)}
-              className="w-full h-32 px-4 py-3 bg-slate-900/50 rounded-xl border border-slate-700/50 text-white placeholder-gray-500 resize-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-300"
-              placeholder="Share your thoughts..."
-              maxLength={2000}
+          {/* Journal Tab */}
+          {activeTab === 'journal' && (
+            <GameJournal 
+              gameId={game.id} 
+              gameName={game.name}
+              userId={game.userId} 
             />
-            <div className="flex items-center justify-between mt-3">
-              <span className="text-xs text-gray-400">{editingReview.length}/2000</span>
-              <button
-                onClick={handleSaveReview}
-                disabled={savingReview}
-                className="px-6 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl font-semibold hover:bg-slate-600/50 transition-all duration-300 disabled:opacity-50 text-white"
-              >
-                {savingReview ? 'Saving...' : 'Save Review'}
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold text-gray-300 mb-3">Status</p>
-            <div className="grid grid-cols-4 gap-3">
-              {(['playing', 'completed', 'backlog', 'unplayed'] as const).map((status) => (
-                <button
-                  key={status}
-                  onClick={() => updateStatus(status)}
-                  className={`px-4 py-3 rounded-xl font-semibold capitalize transition-all duration-300 ${
-                    game.status === status
-                      ? 'bg-blue-600/20 border border-blue-500/30 text-white shadow-md'
-                      : 'bg-slate-800/50 border border-slate-700/50 text-gray-400 hover:bg-slate-700/50 hover:text-white hover:border-slate-600/50'
-                  }`}
-                >
-                  {status}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold text-gray-300 mb-3">Rating</p>
-            <div className="flex gap-3">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onClick={() => updateRating(star)}
-                  className={`flex-1 h-16 rounded-2xl flex items-center justify-center text-3xl transition-all duration-300 ${
-                    currentRating >= star
-                      ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-2xl'
-                      : 'bg-slate-800/50 border border-slate-700/50 text-gray-700 hover:bg-slate-700/50 hover:scale-[1.05]'
-                  }`}
-                >
-                  ★
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Delete Button (only for non-Steam games) */}
-          {game.platform !== 'steam' && (
-            <div className="pt-4 border-t border-slate-800/50">
-              <button
-                onClick={handleDeleteGame}
-                disabled={deleting}
-                className="w-full px-6 py-3 bg-red-900/20 border border-red-500/30 text-red-300 rounded-xl font-semibold hover:bg-red-900/30 transition-all duration-300 disabled:opacity-50"
-              >
-                {deleting ? 'Deleting...' : '🗑️ Delete Game'}
-              </button>
-              <p className="text-xs text-gray-500 text-center mt-2">
-                This action cannot be undone
-              </p>
-            </div>
           )}
         </div>
       </div>

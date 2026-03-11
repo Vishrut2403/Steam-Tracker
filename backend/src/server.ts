@@ -15,6 +15,7 @@ import pcsx2Routes from './routes/pcsx2.routes';
 import rpcs3Routes from './routes/rpcs3.routes';
 import ppssppRoutes from './routes/ppsspp.routes';
 import sessionsRoutes from './routes/sessions.routes';
+import journalRoutes from './routes/journal.routes';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
@@ -47,6 +48,7 @@ app.use('/api/pcsx2', pcsx2Routes);
 app.use('/api/rpcs3', rpcs3Routes);
 app.use('/api/ppsspp', ppssppRoutes);
 app.use('/api/sessions', sessionsRoutes);
+app.use('/api/journal', journalRoutes);
 
 if (isProd) {
   const frontendPath = path.join(__dirname, '../../frontend');
@@ -75,6 +77,7 @@ app.listen(PORT, () => {
   console.log(`RetroAchievements: http://localhost:${PORT}/api/retroachievements`);
   console.log(`PCSX2: http://localhost:${PORT}/api/pcsx2`);
   console.log(`RPCS3: http://localhost:${PORT}/api/rpcs3`);
+  console.log(`Journal: http://localhost:${PORT}/api/journal`);
 
   if (isProd) {
     console.log('Frontend served from Express (production mode)');
