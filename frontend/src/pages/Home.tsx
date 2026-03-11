@@ -8,6 +8,8 @@ import { SortButton } from '../components/SortButton';
 import SyncRALibraryModal from '../components/SyncRALibraryModal';
 import AddRAGameModal from '../components/AddRAGameModal';
 import AutoLinkISOsModal from '../components/AutoLinkISOsModal';
+import { AddAppleGameModal } from '../components/AddAppleGameModal';
+import { AddMinecraftWorldModal } from '../components/AddMinecraftWorldModal';
 import { GameCard } from '../components/GameCard';
 import { GameModal } from '../components/GameModal';
 import { GameTable } from '../components/GameTable';
@@ -30,6 +32,8 @@ function Home() {
   const [showSyncRAModal, setShowSyncRAModal] = useState(false);
   const [showAddRAGameModal, setShowAddRAGameModal] = useState(false);
   const [showAutoLinkISOsModal, setShowAutoLinkISOsModal] = useState(false);
+  const [showAddAppleGameModal, setShowAddAppleGameModal] = useState(false);
+  const [showAddMinecraftWorldModal, setShowAddMinecraftWorldModal] = useState(false);
   
   const [sortField, setSortField] = useState<SortField>('playtime');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -288,6 +292,8 @@ function Home() {
                       onSyncRA={() => setShowSyncRAModal(true)}
                       onAddRAGame={() => setShowAddRAGameModal(true)}
                       onAutoLinkISOs={() => setShowAutoLinkISOsModal(true)}
+                      onAddAppleGame={() => setShowAddAppleGameModal(true)}
+                      onAddMinecraftWorld={() => setShowAddMinecraftWorldModal(true)}
                     />
 
                     <button
@@ -457,6 +463,22 @@ function Home() {
         isOpen={showAutoLinkISOsModal}
         onClose={() => setShowAutoLinkISOsModal(false)}
         onLink={refreshFromDB}
+        userId={library?.userId || ''}
+      />
+
+      {/* Apple Game Center Modal */}
+      <AddAppleGameModal
+        isOpen={showAddAppleGameModal}
+        onClose={() => setShowAddAppleGameModal(false)}
+        onAdd={refreshFromDB}
+        userId={library?.userId || ''}
+      />
+
+      {/* Minecraft Modal */}
+      <AddMinecraftWorldModal
+        isOpen={showAddMinecraftWorldModal}
+        onClose={() => setShowAddMinecraftWorldModal(false)}
+        onAdd={refreshFromDB}
         userId={library?.userId || ''}
       />
     </div>

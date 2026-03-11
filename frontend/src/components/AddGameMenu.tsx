@@ -5,16 +5,17 @@ interface AddGameMenuProps {
   onGameAdded: () => void;
   onSyncRA: () => void;
   onAddRAGame: () => void;
-  onSyncPCSX2?: () => void;
-  onSyncRPCS3?: () => void;
-  onAutoLinkISOs?: () => void;
-  onLinkPPSSPP?: () => void;
+  onAutoLinkISOs: () => void;
+  onAddAppleGame: () => void;
+  onAddMinecraftWorld: () => void;
 }
 
 export const AddGameMenu: React.FC<AddGameMenuProps> = ({
   onSyncRA,
   onAddRAGame,
   onAutoLinkISOs,
+  onAddAppleGame,
+  onAddMinecraftWorld,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -88,13 +89,47 @@ export const AddGameMenu: React.FC<AddGameMenuProps> = ({
             </div>
             <button
               onClick={() => {
-                onAutoLinkISOs?.();
+                onAutoLinkISOs();
                 setIsOpen(false);
               }}
               className="w-full px-4 py-3 text-left hover:bg-slate-700/50 transition-colors flex items-center gap-3 text-white"
             >
               <span className="text-lg">🔗</span>
               <span className="font-medium">Auto-Link ISOs</span>
+            </button>
+          </div>
+
+          {/* Apple Game Center Section */}
+          <div className="border-b border-slate-700/50">
+            <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Apple Game Center
+            </div>
+            <button
+              onClick={() => {
+                onAddAppleGame();
+                setIsOpen(false);
+              }}
+              className="w-full px-4 py-3 text-left hover:bg-slate-700/50 transition-colors flex items-center gap-3 text-white"
+            >
+              <span className="text-lg">🍎</span>
+              <span className="font-medium">Add Apple Game</span>
+            </button>
+          </div>
+
+          {/* Minecraft Section */}
+          <div>
+            <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Minecraft
+            </div>
+            <button
+              onClick={() => {
+                onAddMinecraftWorld();
+                setIsOpen(false);
+              }}
+              className="w-full px-4 py-3 text-left hover:bg-slate-700/50 transition-colors flex items-center gap-3 text-white"
+            >
+              <span className="text-lg">⛏️</span>
+              <span className="font-medium">Add Minecraft World</span>
             </button>
           </div>
         </div>

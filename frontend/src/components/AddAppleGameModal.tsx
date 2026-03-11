@@ -1,13 +1,16 @@
+// frontend/src/components/AddAppleGameModal.tsx
+
 import { useState } from 'react';
 import steamService from '../services/steam.service';
 
 interface AddAppleGameModalProps {
+  isOpen: boolean;
   userId: string;
   onAdd: () => Promise<void>;
   onClose: () => void;
 }
 
-export function AddAppleGameModal({ userId, onAdd, onClose }: AddAppleGameModalProps) {
+export function AddAppleGameModal({ isOpen, userId, onAdd, onClose }: AddAppleGameModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     status: 'playing',
@@ -16,6 +19,8 @@ export function AddAppleGameModal({ userId, onAdd, onClose }: AddAppleGameModalP
     tags: '',
   });
   const [saving, setSaving] = useState(false);
+
+  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,10 +49,13 @@ export function AddAppleGameModal({ userId, onAdd, onClose }: AddAppleGameModalP
         },
       };
 
+      // Call the API directly
       await steamService.addManualGame(gameData);
       
+      // Refresh the library
       await onAdd();
       
+      // Close modal
       onClose();
     } catch (err) {
       console.error('Failed to add game:', err);
@@ -61,7 +69,7 @@ export function AddAppleGameModal({ userId, onAdd, onClose }: AddAppleGameModalP
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-slate-900 rounded-2xl p-6 max-w-md w-full border border-slate-700 max-h-[90vh] overflow-y-auto">
         <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-          Add Apple Game
+          🍎 Add Apple Game
         </h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -137,7 +145,7 @@ export function AddAppleGameModal({ userId, onAdd, onClose }: AddAppleGameModalP
 
           <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
             <p className="text-sm text-blue-300">
-              Note: Playtime tracking is not available for Apple Game Center games
+              ℹ️ Note: Playtime tracking is not available for Apple Game Center games
             </p>
           </div>
 

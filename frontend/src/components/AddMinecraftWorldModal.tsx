@@ -16,12 +16,13 @@ interface MinecraftInstance {
 }
 
 interface AddMinecraftWorldModalProps {
+  isOpen: boolean;
   userId: string;
   onAdd: () => Promise<void>;
   onClose: () => void;
 }
 
-export function AddMinecraftWorldModal({ userId, onAdd, onClose }: AddMinecraftWorldModalProps) {
+export function AddMinecraftWorldModal({ isOpen, userId, onAdd, onClose }: AddMinecraftWorldModalProps) {
   const [instances, setInstances] = useState<MinecraftInstance[]>([]);
   const [selectedInstance, setSelectedInstance] = useState('');
   const [selectedWorld, setSelectedWorld] = useState<MinecraftWorld | null>(null);
@@ -29,8 +30,9 @@ export function AddMinecraftWorldModal({ userId, onAdd, onClose }: AddMinecraftW
   const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
+    if (!isOpen) return;
     loadMinecraftInstances();
-  }, []);
+  }, [isOpen]);
 
   const loadMinecraftInstances = async () => {
     try {
@@ -73,6 +75,8 @@ export function AddMinecraftWorldModal({ userId, onAdd, onClose }: AddMinecraftW
 
   const currentInstance = instances.find(i => i.name === selectedInstance);
 
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-slate-900 rounded-2xl p-6 max-w-2xl w-full border border-slate-700 max-h-[90vh] overflow-y-auto">
@@ -100,7 +104,6 @@ export function AddMinecraftWorldModal({ userId, onAdd, onClose }: AddMinecraftW
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Instance Selector */}
             <div>
               <label className="block text-sm text-gray-300 mb-2">Select Instance</label>
               <select
@@ -117,7 +120,6 @@ export function AddMinecraftWorldModal({ userId, onAdd, onClose }: AddMinecraftW
               </select>
             </div>
 
-            {/* World Selector */}
             {currentInstance && currentInstance.worlds.length > 0 && (
               <div>
                 <label className="block text-sm text-gray-300 mb-2">Select World</label>
@@ -153,7 +155,6 @@ export function AddMinecraftWorldModal({ userId, onAdd, onClose }: AddMinecraftW
               </div>
             )}
 
-            {/* World Stats Preview */}
             {selectedWorld && (
               <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
                 <h3 className="font-semibold text-white mb-3">World Preview</h3>
@@ -176,7 +177,6 @@ export function AddMinecraftWorldModal({ userId, onAdd, onClose }: AddMinecraftW
               </div>
             )}
 
-            {/* Action Buttons */}
             <div className="flex gap-3 pt-2">
               <button
                 onClick={handleAddWorld}
