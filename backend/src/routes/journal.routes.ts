@@ -3,7 +3,6 @@ import prisma from '../prisma';
 
 const router = Router();
 
-// GET /api/journal/:gameId - Get all journal entries for a game
 router.get('/:gameId', async (req: Request, res: Response) => {
   try {
     const gameId = req.params.gameId as string;
@@ -23,7 +22,7 @@ router.get('/:gameId', async (req: Request, res: Response) => {
         userId
       },
       orderBy: {
-        createdAt: 'desc' // Newest first
+        createdAt: 'desc'
       }
     });
 
@@ -40,7 +39,6 @@ router.get('/:gameId', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/journal - Create a new journal entry
 router.post('/', async (req: Request, res: Response) => {
   try {
     const { userId, gameId, heading, content } = req.body;
@@ -53,7 +51,6 @@ router.post('/', async (req: Request, res: Response) => {
       return;
     }
 
-    // Verify the game exists and belongs to the user
     const game = await prisma.libraryGame.findFirst({
       where: {
         id: gameId,
@@ -91,7 +88,6 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// PUT /api/journal/:id - Update a journal entry
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     const entryId = req.params.id as string;
@@ -105,7 +101,6 @@ router.put('/:id', async (req: Request, res: Response) => {
       return;
     }
 
-    // Verify the entry exists and belongs to the user
     const existingEntry = await prisma.gameJournalEntry.findFirst({
       where: {
         id: entryId,
@@ -139,7 +134,6 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/journal/:id - Delete a journal entry
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const entryId = req.params.id as string;
@@ -153,7 +147,6 @@ router.delete('/:id', async (req: Request, res: Response) => {
       return;
     }
 
-    // Verify the entry exists and belongs to the user
     const existingEntry = await prisma.gameJournalEntry.findFirst({
       where: {
         id: entryId,

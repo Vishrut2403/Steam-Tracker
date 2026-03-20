@@ -167,9 +167,9 @@ export const TierList: React.FC<TierListProps> = ({ games }) => {
                         }}
                         title={`${game.name} - ${game.platform} - ${Math.round((game.playtimeForever || 0) / 60)}h`}
                       >
-                        {game.headerImage ? (
+                        {game.imageUrl ? (
                           <img
-                            src={game.headerImage}
+                            src={game.imageUrl}
                             alt={game.name}
                             className="w-full h-full object-cover"
                           />

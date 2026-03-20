@@ -45,7 +45,6 @@ export class PPSSPPService {
 
     const playTimeSection = content.match(/\[PlayTime\]([\s\S]*?)(?=\[|$)/);
     if (!playTimeSection) {
-      console.log('⚠️ No [PlayTime] section found in ppsspp.ini');
       return entries;
     }
 
@@ -68,11 +67,9 @@ export class PPSSPPService {
           lastPlayed: new Date(timestampMs)
         });
 
-        console.log(`📀 ${serial}: ${playtimeMinutes} minutes`);
       }
     }
 
-    console.log(`✅ Found ${entries.length} PSP games with playtime in ppsspp.ini`);
     return entries;
   }
 
@@ -143,7 +140,6 @@ export class PPSSPPService {
       }
     }
 
-    console.log(`✅ Found ${entries.length} PSP games from save data`);
     return entries;
   }
 
@@ -167,7 +163,6 @@ export class PPSSPPService {
     const gameConfigPath = path.join(this.configPath, 'PSP', 'SYSTEM');
     
     if (!fs.existsSync(gameConfigPath)) {
-      console.log('⚠️ PPSSPP config directory not found');
       return [];
     }
 
@@ -176,7 +171,7 @@ export class PPSSPPService {
       const playtimes = this.parsePlaytimes();
       playtimes.forEach(pt => playtimeData.set(pt.serial, pt));
     } catch (err) {
-      console.log('⚠️ Could not parse playtime data');
+      
     }
 
     const entries: PPSSPPPlaytimeEntry[] = [];

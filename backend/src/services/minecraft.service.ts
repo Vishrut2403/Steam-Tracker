@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { parse as parseIni } from 'ini';
 import AdmZip from 'adm-zip';
 
@@ -27,83 +28,124 @@ export class MinecraftService {
   private prismLauncherPath: string;
 
   constructor() {
-    this.prismLauncherPath = path.join(
-      process.env.HOME || '',
-      '.local/share/PrismLauncher/instances'
-    );
-
+    const homeDir = os.homedir();
+    
+    this.prismLauncherPath = path.join(homeDir, '.local', 'share', 'PrismLauncher', 'instances');
+    
     if (process.env.PRISM_LAUNCHER_PATH) {
-      this.prismLauncherPath = process.env.PRISM_LAUNCHER_PATH;
+      const customPath = process.env.PRISM_LAUNCHER_PATH.trim();
+      if (customPath && customPath.length > 0 && !customPath.includes('=')) {
+        this.prismLauncherPath = customPath;
+      }
     }
   }
 
   async getInstances(): Promise<MinecraftInstance[]> {
     try {
+
       if (!fs.existsSync(this.prismLauncherPath)) {
         return [];
       }
 
-      const instanceDirs = fs.readdirSync(this.prismLauncherPath);
+      const items = fs.readdirSync(this.prismLauncherPath);
+      
+      if (items.length === 0) {
+        console.warn('Directory is empty - no instances created yet');
+        return [];
+      }
+
       const instances: MinecraftInstance[] = [];
 
-      for (const dir of instanceDirs) {
-        const instancePath = path.join(this.prismLauncherPath, dir);
-
-        if (!fs.statSync(instancePath).isDirectory()) {
+      for (const item of items) {
+        const itemPath = path.join(this.prismLauncherPath, item);
+        
+        const stats = fs.statSync(itemPath);
+        if (!stats.isDirectory()) {
           continue;
         }
 
-        const configPath = path.join(instancePath, 'instance.cfg');
+        const dotMinecraftPath = path.join(itemPath, '.minecraft');
+        const minecraftPath = path.join(itemPath, 'minecraft');
+        
+        const hasDotMinecraft = fs.existsSync(dotMinecraftPath);
+        const hasMinecraft = fs.existsSync(minecraftPath);
+        
+        if (!hasDotMinecraft && !hasMinecraft) {
+          continue;
+        }
+
+        const configPath = path.join(itemPath, 'instance.cfg');
+        let instanceName = item;
+        let lastPlayedTime: Date | null = null;
 
         if (fs.existsSync(configPath)) {
           try {
             const configContent = fs.readFileSync(configPath, 'utf-8');
             const config = parseIni(configContent);
             
-            const lastPlayedTime = config.General?.lastLaunchTime 
-              ? new Date(parseInt(config.General.lastLaunchTime))
-              : null;
-
-            const worlds = await this.getWorldsForInstance(instancePath, dir);
-
-            instances.push({
-              name: config.General?.name || dir,
-              path: instancePath,
-              lastPlayed: lastPlayedTime,
-              worlds,
-            });
+            if (config.General?.name) {
+              instanceName = config.General.name;
+            }
+            
+            if (config.General?.lastLaunchTime) {
+              lastPlayedTime = new Date(parseInt(config.General.lastLaunchTime));
+            }
           } catch (err) {
-            console.error(`Failed to parse instance ${dir}:`, err);
+            console.warn('Could not parse config:', err);
           }
         }
+
+        const worlds = await this.getWorldsForInstance(itemPath, instanceName);
+
+        instances.push({
+          name: instanceName,
+          path: itemPath,
+          lastPlayed: lastPlayedTime,
+          worlds,
+        });
       }
 
       return instances;
+      
     } catch (err) {
-      console.error('Failed to read Prism instances:', err);
+      console.error('❌ Error reading instances:', err);
       return [];
     }
   }
 
   private async getWorldsForInstance(instancePath: string, instanceName: string): Promise<MinecraftWorld[]> {
-    let savesPath = path.join(instancePath, '.minecraft', 'saves');
+    const possiblePaths = [
+      path.join(instancePath, '.minecraft', 'saves'),
+      path.join(instancePath, 'minecraft', 'saves'),  
+    ];
 
-    if (!fs.existsSync(savesPath)) {
-      savesPath = path.join(instancePath, 'minecraft', 'saves');
+    let savesPath: string | null = null;
+    
+    for (const testPath of possiblePaths) {
+      if (fs.existsSync(testPath)) {
+        savesPath = testPath;
+        break;
+      }
     }
     
-    if (!fs.existsSync(savesPath)) {
+    if (!savesPath) {
       return [];
     }
 
     try {
-      const worldDirs = fs.readdirSync(savesPath);
+      const items = fs.readdirSync(savesPath);
       const worlds: MinecraftWorld[] = [];
 
-      for (const worldDir of worldDirs) {
-        const worldPath = path.join(savesPath, worldDir);
+      for (const item of items) {
+        const worldPath = path.join(savesPath, item);
         
         if (!fs.statSync(worldPath).isDirectory()) {
+          continue;
+        }
+
+        // Validate it's a Minecraft world
+        const levelDatPath = path.join(worldPath, 'level.dat');
+        if (!fs.existsSync(levelDatPath)) {
           continue;
         }
 
@@ -111,19 +153,20 @@ export class MinecraftService {
           const stats = await this.getWorldStats(worldPath);
 
           worlds.push({
-            name: worldDir,
+            name: item,
             path: worldPath,
             playtime: stats.playtime,
             instanceName,
           });
+      
         } catch (err) {
-          console.error(`Failed to get stats for world ${worldDir}:`, err);
+          console.error(`${item}: Error reading stats:`, err);
         }
       }
 
       return worlds;
     } catch (err) {
-      console.error('Failed to read worlds:', err);
+      console.error('Error reading saves folder:', err);
       return [];
     }
   }
@@ -137,7 +180,6 @@ export class MinecraftService {
       }
 
       let totalCount = 0;
-
       const datapacks = fs.readdirSync(datapacksPath);
       
       for (const datapack of datapacks) {
@@ -148,21 +190,16 @@ export class MinecraftService {
             const zip = new AdmZip(datapackPath);
             const zipEntries = zip.getEntries();
             
-            let zipAdvCount = 0;
-            
             for (const entry of zipEntries) {
               const entryPath = entry.entryName;
               
               if (entry.isDirectory || !entryPath.endsWith('.json')) continue;
-              
               if (entryPath.includes('/recipes/')) continue;
               
               if (entryPath.includes('/advancements/') || entryPath.includes('/advancement/')) {
-                zipAdvCount++;
+                totalCount++;
               }
             }
-            
-            totalCount += zipAdvCount;
             continue;
           } catch (zipErr) {
             console.error(`Failed to read ZIP ${datapack}:`, zipErr);
@@ -173,7 +210,6 @@ export class MinecraftService {
         if (!fs.statSync(datapackPath).isDirectory()) continue;
 
         const dataPath = path.join(datapackPath, 'data');
-        
         if (!fs.existsSync(dataPath)) continue;
 
         const namespaces = fs.readdirSync(dataPath);
@@ -187,15 +223,12 @@ export class MinecraftService {
           
           if (!fs.existsSync(advancementsPath)) continue;
 
-          const count = this.countAdvancementFiles(advancementsPath);
-          totalCount += count;
-          
+          totalCount += this.countAdvancementFiles(advancementsPath);
         }
       }
 
       return totalCount;
     } catch (err) {
-      console.error('Failed to scan datapacks:', err);
       return 0;
     }
   }
@@ -212,14 +245,13 @@ export class MinecraftService {
 
         if (stat.isDirectory()) {
           if (item === 'recipes') continue;
-          
           count += this.countAdvancementFiles(fullPath);
         } else if (item.endsWith('.json')) {
           count++;
         }
       }
     } catch (err) {
-      // Ignore errors
+
     }
 
     return count;
@@ -230,13 +262,27 @@ export class MinecraftService {
       const statsPath = path.join(worldPath, 'stats');
       
       if (!fs.existsSync(statsPath)) {
-        return { playtime: 0, achievements: { stats: {}, achievements: {} }, rawStats: {} };
+        return { 
+          playtime: 0, 
+          achievements: { 
+            stats: {}, 
+            achievements: { totalAdvancements: 0, completedAdvancements: 0 } 
+          }, 
+          rawStats: {} 
+        };
       }
 
       const statsFiles = fs.readdirSync(statsPath).filter(f => f.endsWith('.json'));
       
       if (statsFiles.length === 0) {
-        return { playtime: 0, achievements: { stats: {}, achievements: {} }, rawStats: {} };
+        return { 
+          playtime: 0, 
+          achievements: { 
+            stats: {}, 
+            achievements: { totalAdvancements: 0, completedAdvancements: 0 } 
+          }, 
+          rawStats: {} 
+        };
       }
 
       const statsFile = path.join(statsPath, statsFiles[0]);
@@ -254,20 +300,16 @@ export class MinecraftService {
       if (fs.existsSync(advancementsPath)) {
         try {
           const advancementsData = JSON.parse(fs.readFileSync(advancementsPath, 'utf-8'));
-
           const allKeys = Object.keys(advancementsData);
 
           const realAdvancements = allKeys.filter(key => {
-
             if (key === 'DataVersion') return false;
-
             if (key.includes('/recipes/') || key.startsWith('minecraft:recipes/')) return false;
             
             const entry = advancementsData[key];
             if (typeof entry !== 'object' || !entry.criteria) return false;
             
             const criteriaKeys = Object.keys(entry.criteria || {});
-
             const isRecipeUnlock = criteriaKeys.some(k => 
               k === 'has_the_recipe' ||
               k === 'unlock_right_away' ||
@@ -275,40 +317,22 @@ export class MinecraftService {
             ) && criteriaKeys.length === 1;
             
             if (isRecipeUnlock) return false;
-
             if (key.toLowerCase().includes('recipe')) return false;
             
             return true;
           });
-
-          const namespaces: Record<string, number> = {};
-          const namespaceCompleted: Record<string, number> = {};
-          
-          realAdvancements.forEach(key => {
-            const namespace = key.split(':')[0];
-            namespaces[namespace] = (namespaces[namespace] || 0) + 1;
-            
-            if (advancementsData[key].done === true) {
-              namespaceCompleted[namespace] = (namespaceCompleted[namespace] || 0) + 1;
-            }
-          });
           
           totalAdvancements = realAdvancements.length;
-          
-          completedAdvancements = realAdvancements.filter(key => {
-            const advancement = advancementsData[key];
-            return advancement.done === true;
-          }).length;
+          completedAdvancements = realAdvancements.filter(key => 
+            advancementsData[key].done === true
+          ).length;
           
         } catch (err) {
-          console.error('Failed to parse advancements:', err);
+
         }
-      } else {
-        console.log('Advancements file not found:', advancementsPath);
       }
 
       const datapackTotal = this.getTotalAdvancementsFromDatapacks(worldPath);
-      
       const vanillaAdvancementCount = 122; 
       
       if (datapackTotal > 0) {
@@ -329,38 +353,30 @@ export class MinecraftService {
         rawStats: statsData.stats?.['minecraft:custom'] || {},
       };
     } catch (err) {
-      console.error('Failed to read world stats:', err);
-      return { playtime: 0, achievements: { stats: {}, achievements: {} }, rawStats: {} };
+      return { 
+        playtime: 0, 
+        achievements: { 
+          stats: {}, 
+          achievements: { totalAdvancements: 0, completedAdvancements: 0 } 
+        }, 
+        rawStats: {} 
+      };
     }
   }
 
   private parseAchievements(statsData: any): any {
     const customStats = statsData.stats?.['minecraft:custom'] || {};
     
-    const diamondsMined = customStats['minecraft:mine_diamond'] || 0;
-    const deaths = customStats['minecraft:deaths'] || 0;
-    const mobKills = customStats['minecraft:mob_kills'] || 0;
-    const distanceWalked = customStats['minecraft:walk_one_cm'] || 0;
-    const jumps = customStats['minecraft:jump'] || 0;
-    const timeSinceDeath = customStats['minecraft:time_since_death'] || 0;
-
     return {
       stats: {
-        diamondsMined,
-        deaths,
-        mobKills,
-        distanceWalked,
-        jumps,
-        timeSinceDeath,
+        diamondsMined: customStats['minecraft:mine_diamond'] || 0,
+        deaths: customStats['minecraft:deaths'] || 0,
+        mobKills: customStats['minecraft:mob_kills'] || 0,
+        distanceWalked: customStats['minecraft:walk_one_cm'] || 0,
+        jumps: customStats['minecraft:jump'] || 0,
+        timeSinceDeath: customStats['minecraft:time_since_death'] || 0,
       },
-      achievements: {
-        first_diamond: diamondsMined > 0,
-        diamond_millionaire: diamondsMined >= 1000,
-        explorer: distanceWalked > 100000000, 
-        survivor: deaths < 10,
-        warrior: mobKills > 1000,
-        jumpy: jumps > 10000,
-      },
+      achievements: {},
     };
   }
 
@@ -374,20 +390,18 @@ export class MinecraftService {
 
     const totalAchievements = stats.achievements.achievements.totalAdvancements || 0;
     const completedAchievements = stats.achievements.achievements.completedAdvancements || 0;
-    const achievementPercentage = totalAchievements > 0 
-      ? (completedAchievements / totalAchievements) * 100 
-      : 0;
+    
     const platformGameId = `minecraft_${Buffer.from(worldPath).toString('base64').substring(0, 32)}`;
 
     const iconPath = path.join(worldPath, 'icon.png');
-    let headerImage = null;
+    let imageUrl = null;
 
     if (fs.existsSync(iconPath)) {
       try {
         const iconBuffer = fs.readFileSync(iconPath);
-        headerImage = `data:image/png;base64,${iconBuffer.toString('base64')}`;
+        imageUrl = `data:image/png;base64,${iconBuffer.toString('base64')}`;
       } catch (err) {
-        console.log('Failed to read world icon:', err);
+
       }
     }
 
@@ -397,16 +411,14 @@ export class MinecraftService {
       platformGameId,
       name: `Minecraft - ${worldName}`,
       playtimeForever: stats.playtime,
-      headerImage,
-      totalAchievements,
-      completedAchievements,
-      achievementPercentage: Math.round(achievementPercentage),
-      minecraftWorldName: worldName,
-      minecraftWorldPath: worldPath,
-      minecraftInstanceName: instanceName || null,
-      minecraftStats: stats.rawStats,
+      imageUrl,
+      achievementsTotal: totalAchievements,
+      achievementsEarned: completedAchievements,
       platformData: {
-        ...stats.achievements.stats,
+        worldName,
+        worldPath,
+        instanceName: instanceName || null,
+        stats: stats.rawStats,
         advancements: stats.achievements.achievements,
       },
     };

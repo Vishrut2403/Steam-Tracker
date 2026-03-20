@@ -5,18 +5,6 @@ import { MinecraftService } from '../services/minecraft.service';
 const router = Router();
 const minecraftService = new MinecraftService();
 
-const getTierFromRating = (rating: number | null): string | null => {
-  if (!rating) return null;
-  const tierMap: { [key: number]: string } = {
-    5: 'S',
-    4: 'A',
-    3: 'B',
-    2: 'C',
-    1: 'D',
-  };
-  return tierMap[rating] || null;
-};
-
 router.post('/games/manual', async (req: Request, res: Response) => {
   try {
     const {
@@ -44,7 +32,6 @@ router.post('/games/manual', async (req: Request, res: Response) => {
       return;
     }
 
-    const tier = rating ? getTierFromRating(rating) : null;
     const hours = playtimeForever / 60;
     const pricePerHour = pricePaid && hours > 0 ? pricePaid / hours : null;
 
@@ -59,7 +46,6 @@ router.post('/games/manual', async (req: Request, res: Response) => {
         pricePerHour,
         status: status || 'unplayed',
         rating: rating || null,
-        tier,
         review: review || null,
         userTags: userTags || [],
         platformData: platformData || null,
@@ -75,7 +61,6 @@ router.post('/games/manual', async (req: Request, res: Response) => {
   }
 });
 
-// Update game by platform
 router.patch('/games/:platform/:platformGameId', async (req: Request, res: Response) => {
   try {
     const platform = Array.isArray(req.params.platform) ? req.params.platform[0] : req.params.platform;
@@ -92,17 +77,13 @@ router.patch('/games/:platform/:platformGameId', async (req: Request, res: Respo
       return;
     }
 
-    if (updateData.rating) {
-      updateData.tier = getTierFromRating(updateData.rating);
-    }
-
     if (updateData.pricePaid !== undefined || updateData.playtimeForever !== undefined) {
       const game = await prisma.libraryGame.findUnique({
         where: {
-          userId_platform_platformGameId: {
+          userId_platformGameId_platform: {
             userId: userId,
-            platform: platform,
             platformGameId: platformGameId,
+            platform: platform,
           },
         },
       });
@@ -110,17 +91,17 @@ router.patch('/games/:platform/:platformGameId', async (req: Request, res: Respo
       if (game) {
         const newPlaytime = updateData.playtimeForever ?? game.playtimeForever;
         const newPrice = updateData.pricePaid ?? game.pricePaid;
-        const hours = newPlaytime / 60;
+        const hours = (newPlaytime || 0) / 60;
         updateData.pricePerHour = newPrice && hours > 0 ? newPrice / hours : null;
       }
     }
 
     const updated = await prisma.libraryGame.update({
       where: {
-        userId_platform_platformGameId: {
+        userId_platformGameId_platform: {
           userId: userId,
-          platform: platform,
           platformGameId: platformGameId,
+          platform: platform,
         },
       },
       data: updateData,
@@ -153,10 +134,10 @@ router.delete('/games/:platform/:platformGameId', async (req: Request, res: Resp
 
     await prisma.libraryGame.delete({
       where: {
-        userId_platform_platformGameId: {
+        userId_platformGameId_platform: {
           userId: userId,
-          platform: platform,
           platformGameId: platformGameId,
+          platform: platform,
         },
       },
     });
@@ -193,13 +174,13 @@ router.patch('/games/:platform/:platformGameId/image', async (req: Request, res:
 
     const updated = await prisma.libraryGame.update({
       where: {
-        userId_platform_platformGameId: {
+        userId_platformGameId_platform: {
           userId: userId,
-          platform: platform,
           platformGameId: platformGameId,
+          platform: platform,
         },
       },
-      data: { headerImage },
+      data: { imageUrl: headerImage },
     });
 
     res.json({ success: true, game: updated });
@@ -211,7 +192,6 @@ router.patch('/games/:platform/:platformGameId/image', async (req: Request, res:
   }
 });
 
-// Get Minecraft instances from Prism Launcher
 router.get('/minecraft/instances', async (req: Request, res: Response) => {
   try {
     const instances = await minecraftService.getInstances();
@@ -240,22 +220,33 @@ router.post('/minecraft/sync', async (req: Request, res: Response) => {
       instanceName
     );
 
+    const mappedData = {
+      ...gameData,
+      achievementsTotal: (gameData as any).totalAchievements || (gameData as any).achievementsTotal,
+      achievementsEarned: (gameData as any).completedAchievements || (gameData as any).achievementsEarned,
+      imageUrl: (gameData as any).headerImage || (gameData as any).imageUrl,
+    };
+
+    delete (mappedData as any).totalAchievements;
+    delete (mappedData as any).completedAchievements;
+    delete (mappedData as any).achievementPercentage;
+    delete (mappedData as any).headerImage;
+    delete (mappedData as any).minecraftStats;
+
     const game = await prisma.libraryGame.upsert({
       where: {
-        userId_platform_platformGameId: {
+        userId_platformGameId_platform: {
           userId,
+          platformGameId: mappedData.platformGameId,
           platform: 'minecraft',
-          platformGameId: gameData.platformGameId,
         },
       },
-      create: gameData,
+      create: mappedData,
       update: {
-        playtimeForever: gameData.playtimeForever,
-        totalAchievements: gameData.totalAchievements,
-        completedAchievements: gameData.completedAchievements,
-        achievementPercentage: gameData.achievementPercentage,
-        minecraftStats: gameData.minecraftStats,
-        platformData: gameData.platformData,
+        playtimeForever: mappedData.playtimeForever,
+        achievementsTotal: mappedData.achievementsTotal,
+        achievementsEarned: mappedData.achievementsEarned,
+        platformData: mappedData.platformData,
       },
     });
 

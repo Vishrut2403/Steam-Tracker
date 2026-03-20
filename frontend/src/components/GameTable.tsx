@@ -2,7 +2,7 @@ import { useState } from 'react';
 import steamService from '../services/steam.service';
 import { PlatformBadge } from './PlatformBadge';
 import type { LibraryGame } from '../types/games.types';
-import { getGameImage, getTierColor, getConsoleDisplay } from '../utils/gameHelpers';
+import { getGameImage, getConsoleDisplay } from '../utils/gameHelpers';
 
 interface GameTableProps {
   games: LibraryGame[];
@@ -36,8 +36,8 @@ export const GameTable: React.FC<GameTableProps> = ({ games, onGameClick, onRefr
     setSavingPrice(gameKey);
 
     try {
-      if (game.platform === 'steam' && game.appId) {
-        await steamService.updateGamePrice(steamId, game.appId, price);
+      if (game.platform === 'steam') {
+        await steamService.updateGamePrice(steamId, game.platformGameId, price);
       } else {
         await steamService.updatePlatformGame(
           game.platform,
@@ -75,8 +75,8 @@ export const GameTable: React.FC<GameTableProps> = ({ games, onGameClick, onRefr
     setSavingTags(gameKey);
 
     try {
-      if (game.platform === 'steam' && game.appId) {
-        await steamService.updateGameTags(steamId, game.appId, tags);
+      if (game.platform === 'steam') {
+        await steamService.updateGameTags(steamId, game.platformGameId, tags);
       } else {
         await steamService.updatePlatformGame(
           game.platform,
@@ -130,7 +130,7 @@ export const GameTable: React.FC<GameTableProps> = ({ games, onGameClick, onRefr
           <tbody>
             {games.map((game, index) => {
               const gameKey = getGameKey(game);
-              const hours = (game.playtimeForever / 60).toFixed(1);
+              const hours = ((game.playtimeForever || 0) / 60).toFixed(1);
               const isEditingTag = editingTags[gameKey] !== undefined;
               const isSavingTag = savingTags === gameKey;
               const isEditingPriceField = editingPrice[gameKey] !== undefined;
@@ -159,11 +159,6 @@ export const GameTable: React.FC<GameTableProps> = ({ games, onGameClick, onRefr
                             e.currentTarget.src = 'https://via.placeholder.com/300x400/1a1a1a/666?text=No+Image';
                           }}
                         />
-                        {game.tier && (
-                          <div className={`absolute top-1 right-1 w-6 h-6 bg-gradient-to-br ${getTierColor(game.tier)} rounded-md flex items-center justify-center text-white text-xs font-bold`}>
-                            {game.tier}
-                          </div>
-                        )}
                       </div>
                       <div>
                         <div className="text-white font-medium mb-1">{game.name}</div>
@@ -181,7 +176,7 @@ export const GameTable: React.FC<GameTableProps> = ({ games, onGameClick, onRefr
 
                   {/* Price/Hour */}
                   <td className="px-6 py-4 text-right">
-                    {game.pricePerHour && game.playtimeForever > 0 ? (
+                    {game.pricePerHour && (game.playtimeForever || 0) > 0 ? (
                       <span className={`font-semibold ${
                         game.pricePerHour < 10 ? 'text-emerald-400' :
                         game.pricePerHour < 50 ? 'text-yellow-400' : 
@@ -256,7 +251,7 @@ export const GameTable: React.FC<GameTableProps> = ({ games, onGameClick, onRefr
                   <td className="px-6 py-4 text-right">
                     {game.platform === 'apple_gc' ? (
                       <span className="text-gray-600">-</span>
-                    ) : game.platform === 'retroachievements' && game.playtimeForever > 0 ? (
+                    ) : game.platform === 'retroachievements' && (game.playtimeForever || 0) > 0 ? (
                       <span className="text-white font-medium">{hours}h</span>
                     ) : game.platform === 'retroachievements' ? (
                       <span className="text-gray-600">Not synced</span>

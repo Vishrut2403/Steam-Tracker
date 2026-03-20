@@ -142,7 +142,7 @@ router.post('/sync', async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
-    console.error('❌ Error syncing PCSX2 playtimes:', error);
+    console.error('Error syncing PCSX2 playtimes:', error);
     console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
@@ -275,7 +275,7 @@ router.post('/auto-link', async (req: Request, res: Response) => {
         totalGames: raGames.length,
         totalISOs: isoInfos.length,
         linked,
-        notMatched
+        
       }
     });
   } catch (error: any) {

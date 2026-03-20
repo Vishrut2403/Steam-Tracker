@@ -9,16 +9,7 @@ const SCORING_WEIGHTS = {
   discount: 0.50,
   playtime: 0.30,
   tagMatch: 0.15,
-  rating: 0.03,
-  tier: 0.02,
-};
-
-const TIER_MULTIPLIERS = {
-  S: 1.2,
-  A: 1.1,
-  B: 1.0,
-  C: 0.9,
-  D: 0.8,
+  rating: 0.05,
 };
 
 interface TagProfile {
@@ -26,7 +17,6 @@ interface TagProfile {
     totalPlaytime: number;
     gameCount: number;
     avgRating: number;
-    tierMultiplier: number;
   };
 }
 
@@ -43,73 +33,56 @@ interface RecommendationResult {
     playtimeScore: number;
     tagMatchScore: number;
     ratingScore: number;
-    tierScore: number;
   };
   estimatedPlaytime: number;
   reasoning: string[];
 }
 
 class RecommendationService {
-  // Build tag profile from library 
   private async buildTagProfile(userId: string): Promise<TagProfile> {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        libraryGames: {
-          where: {
-            playtimeForever: { gt: 0 },
-          },
-          select: {
-            genres: true,
-            userTags: true,
-            playtimeForever: true,
-            rating: true,
-            tier: true,
-          },
-        },
+    const games = await prisma.libraryGame.findMany({
+      where: {
+        userId,
+        playtimeForever: { gt: 0 },
+      },
+      select: {
+        platformData: true,
+        userTags: true,
+        playtimeForever: true,
+        rating: true,
       },
     });
 
-    if (!user || !user.libraryGames) {
-      return {};
-    }
-
-    const games = user.libraryGames;
-
     const profile: TagProfile = {};
 
-    games.forEach((game) => {
-      const allTags = [...game.genres, ...game.userTags];
-      const tierMultiplier = TIER_MULTIPLIERS[game.tier as keyof typeof TIER_MULTIPLIERS] || 1.0;
+    games.forEach((game: any) => {
+      const genres = game.platformData?.genres || [];
+      const allTags = [...genres, ...(game.userTags || [])];
       const rating = game.rating || 3;
 
-      allTags.forEach((tag) => {
+      allTags.forEach((tag: string) => {
         if (!profile[tag]) {
           profile[tag] = {
             totalPlaytime: 0,
             gameCount: 0,
             avgRating: 0,
-            tierMultiplier: 0,
           };
         }
 
         const current = profile[tag];
-        current.totalPlaytime += game.playtimeForever;
+        current.totalPlaytime += game.playtimeForever || 0;
         current.gameCount += 1;
         current.avgRating = (current.avgRating * (current.gameCount - 1) + rating) / current.gameCount;
-        current.tierMultiplier = Math.max(current.tierMultiplier, tierMultiplier);
       });
     });
 
     return profile;
   }
 
-  // Discount score (0-100) 
   private calculateDiscountScore(discountPercent: number): number {
     return Math.min(discountPercent, 100);
   }
 
-  // Playtime score (0-100) 
   private calculatePlaytimeScore(gameTags: string[], profile: TagProfile): number {
     if (Object.keys(profile).length === 0) return 50;
 
@@ -118,7 +91,7 @@ class RecommendationService {
 
     gameTags.forEach((tag) => {
       if (profile[tag]) {
-        totalWeightedPlaytime += profile[tag].totalPlaytime * profile[tag].tierMultiplier;
+        totalWeightedPlaytime += profile[tag].totalPlaytime;
         matchCount++;
       }
     });
@@ -129,7 +102,6 @@ class RecommendationService {
     return Math.min((avgPlaytime / 6000) * 100, 100);
   }
 
-  // Tag match score (0-100) 
   private calculateTagMatchScore(gameTags: string[], profile: TagProfile): number {
     if (Object.keys(profile).length === 0) return 50;
 
@@ -141,7 +113,6 @@ class RecommendationService {
     return gameTags.length > 0 ? (matchedTags / gameTags.length) * 100 : 0;
   }
 
-  // Rating score (0-100)
   private calculateRatingScore(gameTags: string[], profile: TagProfile): number {
     if (Object.keys(profile).length === 0) return 50;
 
@@ -159,19 +130,6 @@ class RecommendationService {
 
     const avgRating = totalRating / matchCount;
     return (avgRating / 5) * 100;
-  }
-
-  private calculateTierScore(gameTags: string[], profile: TagProfile): number {
-    if (Object.keys(profile).length === 0) return 50;
-
-    let maxTierMultiplier = 0;
-    gameTags.forEach((tag) => {
-      if (profile[tag]) {
-        maxTierMultiplier = Math.max(maxTierMultiplier, profile[tag].tierMultiplier);
-      }
-    });
-
-    return maxTierMultiplier > 0 ? (maxTierMultiplier / 1.2) * 100 : 40;
   }
 
   private estimatePlaytime(gameTags: string[], profile: TagProfile): number {
@@ -221,36 +179,31 @@ class RecommendationService {
     return reasons;
   }
 
-  // Generate recommendations 
   async getRecommendations(userId: string): Promise<RecommendationResult[]> {
     
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { wishlistGames: true },
+    const wishlistGames = await prisma.steamWishlist.findMany({
+      where: { userId },
     });
 
-    if (!user || user.wishlistGames.length === 0) {
+    if (wishlistGames.length === 0) {
       return [];
     }
-
 
     const profile = await this.buildTagProfile(userId);
     
     const recommendations: RecommendationResult[] = [];
 
-    for (const game of user.wishlistGames) {
+    for (const game of wishlistGames) {
       const discountScore = this.calculateDiscountScore(game.discountPercent);
       const playtimeScore = this.calculatePlaytimeScore(game.tags, profile);
       const tagMatchScore = this.calculateTagMatchScore(game.tags, profile);
       const ratingScore = this.calculateRatingScore(game.tags, profile);
-      const tierScore = this.calculateTierScore(game.tags, profile);
 
       const finalScore =
         discountScore * SCORING_WEIGHTS.discount +
         playtimeScore * SCORING_WEIGHTS.playtime +
         tagMatchScore * SCORING_WEIGHTS.tagMatch +
-        ratingScore * SCORING_WEIGHTS.rating +
-        tierScore * SCORING_WEIGHTS.tier;
+        ratingScore * SCORING_WEIGHTS.rating;
 
       const estimatedPlaytime = this.estimatePlaytime(game.tags, profile);
       const reasoning = this.generateReasoning(
@@ -273,7 +226,6 @@ class RecommendationService {
           playtimeScore: Math.round(playtimeScore),
           tagMatchScore: Math.round(tagMatchScore),
           ratingScore: Math.round(ratingScore),
-          tierScore: Math.round(tierScore),
         },
         estimatedPlaytime: Math.round(estimatedPlaytime / 60),
         reasoning,

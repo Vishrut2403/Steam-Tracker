@@ -56,9 +56,9 @@ class SteamService {
     return response.data;
   }
 
-  async updateGameImage(steamId: string, appId: string, headerImage: string) {
+  async updateGameImage(steamId: string, appId: string, imageUrl: string) {
     const response = await api.patch(`/steam/library/${steamId}/game/${appId}/image`, {
-      headerImage,
+      imageUrl,
     });
     return response.data;
   }

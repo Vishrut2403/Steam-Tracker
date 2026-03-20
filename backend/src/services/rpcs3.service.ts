@@ -103,10 +103,6 @@ export class RPCS3Service {
       });
     }
 
-    entries.forEach(e => {
-      console.log(`📀 ${e.serial}: ${e.gameName} - ${Math.floor(e.playtimeSeconds / 60)}m`);
-    });
-
     return entries;
   }
 

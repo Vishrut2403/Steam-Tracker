@@ -124,6 +124,9 @@ class SteamService {
         updatedAt: new Date(),
       },
       create: {
+        email: `steam_${steamId}@temp.com`,
+        password: 'NO_PASSWORD_STEAM_OAUTH',
+        username: `steam_${steamId}`,
         steamId,
         steamUsername: username || null,
       },
@@ -137,27 +140,31 @@ class SteamService {
     for (const game of games) {
         await prisma.libraryGame.upsert({
           where: {
-            userId_appId: {
+            userId_platformGameId_platform: {
               userId: user.id,
-              appId: String(game.appid),
+              platformGameId: String(game.appid),
+              platform: 'steam'
             },
           },
           update: {
             playtimeForever: game.playtime_forever,
-            imgIconUrl: game.img_icon_url || null,
-            imgLogoUrl: game.img_logo_url || null,
-            headerImage: `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`,
+            imageUrl: `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`,
+            platformData: {
+              imgIconUrl: game.img_icon_url || null,
+              imgLogoUrl: game.img_logo_url || null,
+            }
           },
           create: {
             userId: user.id,
             platform: 'steam',
             platformGameId: String(game.appid),
-            appId: String(game.appid),
             name: game.name,
             playtimeForever: game.playtime_forever,
-            imgIconUrl: game.img_icon_url || null,
-            imgLogoUrl: game.img_logo_url || null,
-            headerImage: `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`,
+            imageUrl: `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`,
+            platformData: {
+              imgIconUrl: game.img_icon_url || null,
+              imgLogoUrl: game.img_logo_url || null,
+            }
           },
         });
     }
@@ -173,15 +180,15 @@ class SteamService {
         if (achievements) {
           await prisma.libraryGame.update({
             where: {
-              userId_appId: {
+              userId_platformGameId_platform: {
                 userId: userId,
-                appId: String(game.appid),
+                platformGameId: String(game.appid),
+                platform: 'steam'
               },
             },
             data: {
-              totalAchievements: achievements.total,
-              completedAchievements: achievements.completed,
-              achievementPercentage: achievements.percentage,
+              achievementsTotal: achievements.total,
+              achievementsEarned: achievements.completed,
             },
           });
         }
@@ -215,6 +222,31 @@ class SteamService {
     } catch (error) {
       throw new Error('Failed to fetch Steam library');
     }
+  }
+
+  async getEnrichedLibrary(steamId: string) {
+    const user = await prisma.user.findUnique({ 
+      where: { steamId },
+      include: {
+        games: {
+          where: { platform: 'steam' },
+          orderBy: [
+            { status: 'asc' },
+            { playtimeForever: 'desc' }
+          ]
+        }
+      }
+    });
+
+    if (!user) {
+      return { userId: null, count: 0, games: [] };
+    }
+
+    return {
+      userId: user.id,
+      count: user.games.length,
+      games: user.games
+    };
   }
 
   async getUserWishlist(steamId: string): Promise<number[]> {
@@ -309,34 +341,37 @@ class SteamService {
     return enriched;
   }
 
-async saveWishlist(steamId: string, games: WishlistGameData[]) {
-  const user = await this.findOrCreateUser(steamId);
+  async saveWishlist(steamId: string, games: WishlistGameData[]) {
+    const user = await this.findOrCreateUser(steamId);
 
-  for (const game of games) {
-    await prisma.steamWishlist.upsert({
-      where: {
-        userId_name: {
-          userId: user.id,
-          name: game.name,
+    for (const game of games) {
+      const appId = (game as any).appId || String(Math.random() * 1000000);
+      
+      await prisma.steamWishlist.upsert({
+        where: {
+          userId_appId: {
+            userId: user.id,
+            appId: appId,
+          },
         },
-      },
-      update: {
-        currentPrice: game.currentPrice,
-        discountPercent: game.discountPercent,
-        tags: game.tags,
-        listPrice: game.originalPrice,
-      },
-      create: {
-        userId: user.id,
-        name: game.name,
-        tags: game.tags ?? [],
-        listPrice: game.originalPrice ?? 0,
-        currentPrice: game.currentPrice ?? 0,
-        discountPercent: game.discountPercent ?? 0,
-      },
-    });
+        update: {
+          currentPrice: game.currentPrice,
+          discountPercent: game.discountPercent,
+          tags: game.tags,
+          listPrice: game.originalPrice,
+        },
+        create: {
+          userId: user.id,
+          appId: appId,
+          name: game.name,
+          tags: game.tags ?? [],
+          listPrice: game.originalPrice ?? 0,
+          currentPrice: game.currentPrice ?? 0,
+          discountPercent: game.discountPercent ?? 0,
+        },
+      });
+    }
   }
-}
 
   async getPlayerSummary(steamId: string) {
     const cacheKey = `player_${steamId}`;

@@ -8,80 +8,83 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  steamId       String         @unique
-  steamUsername  String?
-  avatarUrl     String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-
-  libraryGames    LibraryGame[]
-  wishlistGames   SteamWishlist[]
-  gameSessions    GameSession[]
-  journalEntries  GameJournalEntry[]
-
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  username      String   @unique
+  displayName   String?
+  avatar        String?
+  
+  xp            Int      @default(0)
+  level         Int      @default(1)
+  
+  steamId       String?  @unique
+  steamUsername String?
+  steamAvatar   String?
+  steamLinkedAt DateTime?
+  
+  raUsername    String?
+  raApiKey      String?
+  raLinkedAt    DateTime?
+  
+  enablePCSX2   Boolean  @default(false)
+  enableRPCS3   Boolean  @default(false)
+  enablePPSSPP  Boolean  @default(false)
+  
+  autoSyncSteam     Boolean @default(false)
+  autoSyncRA        Boolean @default(false)
+  autoSyncEmulators Boolean @default(false)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastLoginAt   DateTime?
+  
+  games          LibraryGame[]
+  sessions       GameSession[]
+  journalEntries GameJournalEntry[]
+  wishlistGames  SteamWishlist[]
+  
   @@map("users")
 }
 
 model LibraryGame {
-  id              String   @id @default(uuid())
-  userId          String
+  id                 String   @id @default(uuid())
+  userId             String
+  platform           String   // 'steam', 'retroachievements', 'pcsx2', 'rpcs3', 'ppsspp', 'apple_gc', 'minecraft'
+  platformGameId     String
+  name               String
+  imageUrl           String?
+  playtimeForever    Int?     // minutes
+  lastPlayedAt       DateTime?
   
-  // Multi-platform support
-  platform        String   @default("steam")
-  platformGameId  String
-  appId           String?  // Keep for backward compatibility
+  // User data
+  status             String?  // 'playing', 'completed', 'backlog'
+  rating             Int?     // 1-5 stars
+  review             String?  @db.Text
+  userTags           String[] @default([])
   
-  name            String
-  playtimeForever Int      @default(0)
-  pricePaid       Float?
-  pricePerHour    Float?
-  genres          String[]
-  userTags        String[]
+  // Steam-specific
+  pricePaid          Float?
+  pricePerHour       Float?
   
-  status          String?  @default("unplayed")
-  rating          Int?
-  tier            String?
-  review          String?
+  // Achievement data
+  achievementsTotal  Int?
+  achievementsEarned Int?
   
-  imgIconUrl      String?
-  imgLogoUrl      String?
-  headerImage     String?
+  // Platform-specific metadata
+  platformData       Json?
   
-  totalAchievements      Int?     @default(0)
-  completedAchievements  Int?     @default(0)
-  achievementPercentage  Float?   @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
   
-  platformData           Json?
-  
-  minecraftWorldName     String?
-  minecraftWorldPath     String?
-  minecraftInstanceName  String?
-  minecraftUUID          String?
-  minecraftStats         Json?
-  
-  emulatorType           String?
-  emulatorGame           String?
-  retroAchievementsId    String?
-  retroAchievementsData  Json?
-  
-  completedAt    DateTime?
-  lastPlayedAt   DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @default(now()) @updatedAt
-
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gameSessions GameSession[]
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions GameSession[]
   journalEntries GameJournalEntry[]
-
-  @@unique([userId, platform, platformGameId])
-  @@unique([userId, appId])
+  
+  @@unique([userId, platformGameId, platform])
   @@index([userId])
-  @@index([userId, platform])
   @@index([platform])
   @@index([status])
-  @@index([tier])
-  @@index([rating])
   @@map("library_games")
 }
 
@@ -90,39 +93,33 @@ model GameSession {
   userId    String
   gameId    String
   platform  String
-  
-  date      DateTime // Date of the session (normalized to start of day)
-  minutes   Int      // Minutes played in this session
-  
+  date      DateTime // Start of day (UTC) for this session
+  minutes   Int      // Total minutes played on this date
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  
   user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   game LibraryGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
-
+  
   @@unique([userId, gameId, date])
   @@index([userId])
   @@index([gameId])
-  @@index([userId, date])
-  @@index([platform])
+  @@index([date])
   @@map("game_sessions")
 }
 
-// Game journal entries - personal notes for each game
 model GameJournalEntry {
   id        String   @id @default(uuid())
   userId    String
   gameId    String
-  
-  heading   String   // Entry heading/title (e.g., "End of Act 1")
-  content   String   @db.Text // Journal entry text (can be long)
-  
+  heading   String
+  content   String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  
   user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   game LibraryGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
-
+  
   @@index([gameId])
   @@index([userId])
   @@index([createdAt])
@@ -130,23 +127,22 @@ model GameJournalEntry {
 }
 
 model SteamWishlist {
-  id              String   @id @default(uuid())
-  userId          String
-  name            String
-  tags            String[]
-  listPrice       Float
-  currentPrice    Float
+  id                  String   @id @default(uuid())
+  userId              String
+  appId               String
+  name                String
+  tags                String[]
+  listPrice           Float
+  currentPrice        Float
+  discountPercent     Int
+  recommendationScore Int?
+  imageUrl            String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
   
-  recommendationScore Float    @default(0)
-  discountPercent     Float    @default(0)
-  
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, name]) 
+  
+  @@unique([userId, appId])
   @@index([userId])
-  @@index([recommendationScore])
   @@map("steam_wishlist")
 }

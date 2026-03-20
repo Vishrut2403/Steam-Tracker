@@ -12,7 +12,6 @@ type SortOption = 'mostPlayed' | 'mostAchievements' | 'recentlyPlayed' | 'alphab
 export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ games }) => {
   const [coverSort, setCoverSort] = useState<SortOption>('mostPlayed');
   
-  // CHANGE #5: Enhanced Platform Cards with more stats
   const platformStats = useMemo(() => {
     const stats = games.reduce((acc, game) => {
       const platform = game.platform;
@@ -28,8 +27,8 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
       }
       acc[platform].games += 1;
       acc[platform].hours += Math.round((game.playtimeForever || 0) / 60);
-      acc[platform].achievements += (game.completedAchievements || 0);
-      acc[platform].totalAchievements += (game.totalAchievements || 0);
+      acc[platform].achievements += (game.achievementsEarned || 0);
+      acc[platform].totalAchievements += (game.achievementsTotal || 0);
       if (game.status === 'completed') acc[platform].completedGames += 1;
       return acc;
     }, {} as Record<string, any>);
@@ -52,11 +51,11 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
       case 'mostPlayed':
         return sorted.sort((a, b) => (b.playtimeForever || 0) - (a.playtimeForever || 0));
       case 'mostAchievements':
-        return sorted.sort((a, b) => (b.completedAchievements || 0) - (a.completedAchievements || 0));
+        return sorted.sort((a, b) => (b.achievementsEarned || 0) - (a.achievementsEarned || 0));
       case 'recentlyPlayed':
         return sorted.sort((a, b) => {
-          const aTime = (a as any).lastPlayedAt ? new Date((a as any).lastPlayedAt).getTime() : 0;
-          const bTime = (b as any).lastPlayedAt ? new Date((b as any).lastPlayedAt).getTime() : 0;
+          const aTime = a.lastPlayedAt ? new Date(a.lastPlayedAt).getTime() : 0;
+          const bTime = b.lastPlayedAt ? new Date(b.lastPlayedAt).getTime() : 0;
           return bTime - aTime;
         });
       case 'alphabetical':
@@ -97,9 +96,9 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
     const played10h = games.filter(g => (g.playtimeForever || 0) >= 600).length;
     const completed = games.filter(g => g.status === 'completed').length;
     const perfect = games.filter(g => 
-      g.totalAchievements && 
-      g.totalAchievements > 0 && 
-      g.completedAchievements === g.totalAchievements
+      g.achievementsTotal && 
+      g.achievementsTotal > 0 && 
+      g.achievementsEarned === g.achievementsTotal
     ).length;
     
     return [
@@ -118,7 +117,7 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
 
   return (
     <div className="space-y-8">
-      {/* CHANGE #5: Enhanced Platform Distribution Cards */}
+      {/* Platform Distribution Cards */}
       <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
         <h3 className="text-xl font-bold text-white mb-4">Platform Distribution</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -241,38 +240,44 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-4">
-          {sortedGames.slice(0, 48).map((game, idx) => (
-            <div 
-              key={idx} 
-              className="group relative aspect-[460/215] overflow-hidden rounded-lg border border-slate-700/50 hover:border-blue-500/50 transition-all"
-            >
-              {game.headerImage ? (
-                <img 
-                  src={game.headerImage} 
-                  alt={game.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                  <span className="text-gray-600 text-3xl">🎮</span>
+          {sortedGames.slice(0, 48).map((game, idx) => {
+            const achievementPercent = game.achievementsTotal && game.achievementsTotal > 0
+              ? Math.round(((game.achievementsEarned || 0) / game.achievementsTotal) * 100)
+              : null;
+            
+            return (
+              <div 
+                key={idx} 
+                className="group relative aspect-[460/215] overflow-hidden rounded-lg border border-slate-700/50 hover:border-blue-500/50 transition-all"
+              >
+                {game.imageUrl ? (
+                  <img 
+                    src={game.imageUrl} 
+                    alt={game.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+                    <span className="text-gray-600 text-3xl">🎮</span>
+                  </div>
+                )}
+                
+                {/* Overlay with info */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col justify-end">
+                  <div className="text-white text-xs font-semibold mb-1 line-clamp-2">
+                    {game.name}
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-300">
+                    <span>{formatTime(game.playtimeForever || 0)}</span>
+                    {achievementPercent !== null && achievementPercent > 0 && (
+                      <span>{achievementPercent}%</span>
+                    )}
+                  </div>
+                  <PlatformBadge platform={game.platform} showLabel={false} />
                 </div>
-              )}
-              
-              {/* Overlay with info */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col justify-end">
-                <div className="text-white text-xs font-semibold mb-1 line-clamp-2">
-                  {game.name}
-                </div>
-                <div className="flex items-center justify-between text-xs text-gray-300">
-                  <span>{formatTime(game.playtimeForever || 0)}</span>
-                  {game.achievementPercentage != null && game.achievementPercentage > 0 && (
-                    <span>{Math.round(game.achievementPercentage)}%</span>
-                  )}
-                </div>
-                <PlatformBadge platform={game.platform} showLabel={false} />
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       

@@ -116,7 +116,7 @@ router.post('/sync', async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
-    console.error('❌ Error syncing PPSSPP:', error);
+    console.error('Error syncing PPSSPP:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to sync PPSSPP playtime'
@@ -218,7 +218,7 @@ router.post('/link-serials', async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
-    console.error('❌ Error linking PPSSPP serials:', error);
+    console.error('Error linking PPSSPP serials:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to link PPSSPP serials'

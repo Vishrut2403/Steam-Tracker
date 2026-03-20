@@ -103,11 +103,11 @@ router.post('/sync', async (req: Request, res: Response): Promise<void> => {
           game.numPossibleAchievements
         );
         
-        const headerImage = retroAchievementsService.getGameIconUrl(game.imageIcon);
+        const imageUrl = retroAchievementsService.getGameIconUrl(game.imageIcon);
         
         const ps2Serial = getSerialByGameId(game.gameId) || getSerialByName(game.title);
         if (ps2Serial) {
-          console.log(`   🎮 Found serial: ${ps2Serial}`);
+          console.log(`Found serial: ${ps2Serial}`);
         }
         
         const platformData = {
@@ -129,10 +129,10 @@ router.post('/sync', async (req: Request, res: Response): Promise<void> => {
         
         const existing = await prisma.libraryGame.findUnique({
           where: {
-            userId_platform_platformGameId: {
+            userId_platformGameId_platform: {
               userId,
-              platform: 'retroachievements',
-              platformGameId: String(game.gameId)
+              platformGameId: String(game.gameId),
+              platform: 'retroachievements'
             }
           }
         });
@@ -142,13 +142,10 @@ router.post('/sync', async (req: Request, res: Response): Promise<void> => {
           platform: 'retroachievements',
           platformGameId: String(game.gameId),
           name: game.title,
-          headerImage,
-          totalAchievements: game.numPossibleAchievements,
-          completedAchievements: game.numAchieved,
-          achievementPercentage: completionPercent,
+          imageUrl,
+          achievementsTotal: game.numPossibleAchievements,
+          achievementsEarned: game.numAchieved,
           platformData,
-          retroAchievementsId: String(game.gameId),
-          retroAchievementsData: platformData,
           status: isMastered ? 'completed' : (completionPercent > 0 ? 'playing' : 'unplayed'),
           lastPlayedAt: game.lastPlayed ? new Date(game.lastPlayed) : null,
           updatedAt: new Date()
@@ -232,7 +229,7 @@ router.post('/game', async (req: Request, res: Response): Promise<void> => {
     const released = gameInfo.Released;
     
     if (!gameInfo || !title) {
-      console.error('❌ Game info incomplete:', gameInfo);
+      console.error('Game info incomplete:', gameInfo);
       res.status(404).json({
         success: false,
         error: `Game ${gameId} not found or incomplete data from RetroAchievements`
@@ -250,7 +247,7 @@ router.post('/game', async (req: Request, res: Response): Promise<void> => {
     const numPossible = userProgress?.numPossibleAchievements || 0;
     const completionPercent = retroAchievementsService.calculateCompletion(numAchieved, numPossible);
     
-    const headerImage = imageBoxArt 
+    const imageUrl = imageBoxArt 
       ? retroAchievementsService.getGameBoxArtUrl(imageBoxArt)
       : imageIcon 
         ? retroAchievementsService.getGameIconUrl(imageIcon)
@@ -283,10 +280,10 @@ router.post('/game', async (req: Request, res: Response): Promise<void> => {
     
     const game = await prisma.libraryGame.upsert({
       where: {
-        userId_platform_platformGameId: {
+        userId_platformGameId_platform: {
           userId,
-          platform: 'retroachievements',
-          platformGameId: String(gameId)
+          platformGameId: String(gameId),
+          platform: 'retroachievements'
         }
       },
       create: {
@@ -294,23 +291,18 @@ router.post('/game', async (req: Request, res: Response): Promise<void> => {
         platform: 'retroachievements',
         platformGameId: String(gameId),
         name: title,
-        headerImage,
-        totalAchievements: numPossible,
-        completedAchievements: numAchieved,
-        achievementPercentage: completionPercent,
+        imageUrl,
+        achievementsTotal: numPossible,
+        achievementsEarned: numAchieved,
         platformData,
-        retroAchievementsId: String(gameId),
-        retroAchievementsData: platformData,
         status: 'unplayed'
       },
       update: {
         name: title,
-        headerImage,
-        totalAchievements: numPossible,
-        completedAchievements: numAchieved,
-        achievementPercentage: completionPercent,
+        imageUrl,
+        achievementsTotal: numPossible,
+        achievementsEarned: numAchieved,
         platformData,
-        retroAchievementsData: platformData,
         updatedAt: new Date()
       }
     });
@@ -348,10 +340,10 @@ router.delete('/game/:platformGameId', async (req: Request, res: Response): Prom
     
     await prisma.libraryGame.delete({
       where: {
-        userId_platform_platformGameId: {
+        userId_platformGameId_platform: {
           userId: String(userId),
-          platform: 'retroachievements',
-          platformGameId
+          platformGameId,
+          platform: 'retroachievements'
         }
       }
     });

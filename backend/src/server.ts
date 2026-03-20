@@ -16,6 +16,7 @@ import rpcs3Routes from './routes/rpcs3.routes';
 import ppssppRoutes from './routes/ppsspp.routes';
 import sessionsRoutes from './routes/sessions.routes';
 import journalRoutes from './routes/journal.routes';
+import userRoutes from './routes/user.routes';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
@@ -49,6 +50,7 @@ app.use('/api/rpcs3', rpcs3Routes);
 app.use('/api/ppsspp', ppssppRoutes);
 app.use('/api/sessions', sessionsRoutes);
 app.use('/api/journal', journalRoutes);
+app.use('/api/user', userRoutes);
 
 if (isProd) {
   const frontendPath = path.join(__dirname, '../../frontend');

@@ -1,29 +1,24 @@
 import type { LibraryGame } from '../types/games.types';
 
 export const getGameImage = (game: LibraryGame): string => {
-  if (game.headerImage) return game.headerImage;
+  if (game.imageUrl) return game.imageUrl;
   
-  if (game.platform === 'steam' && game.appId) {
-    return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appId}/library_600x900.jpg`;
+  // For Steam games, platformGameId IS the appId
+  if (game.platform === 'steam') {
+    return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.platformGameId}/library_600x900.jpg`;
   }
   
   return 'https://via.placeholder.com/300x400/1a1a1a/666?text=No+Image';
 };
 
 export const is100Percent = (game: LibraryGame): boolean => {
-  return !!(game.totalAchievements && game.totalAchievements > 0 && 
-           game.completedAchievements === game.totalAchievements);
+  return !!(game.achievementsTotal && game.achievementsTotal > 0 && 
+           game.achievementsEarned === game.achievementsTotal);
 };
 
-export const getTierColor = (tier: string | null): string => {
-  const colors: Record<string, string> = {
-    S: 'from-red-500 to-orange-500',
-    A: 'from-orange-500 to-yellow-500',
-    B: 'from-yellow-500 to-green-500',
-    C: 'from-green-500 to-cyan-500',
-    D: 'from-cyan-500 to-blue-500',
-  };
-  return colors[tier || ''] || 'from-gray-500 to-gray-600';
+export const getAchievementPercentage = (game: LibraryGame): number => {
+  if (!game.achievementsTotal || game.achievementsTotal === 0) return 0;
+  return Math.round(((game.achievementsEarned || 0) / game.achievementsTotal) * 100);
 };
 
 export const getRatingColor = (rating: number | null): string => {

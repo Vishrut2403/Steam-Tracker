@@ -17,9 +17,14 @@ import { useGameFilters } from '../hooks/useGameFilters';
 import type { LibraryGame, TabType, SortField, SortDirection } from '../types/games.types';
 import { Analytics } from '../components/Analytics';
 import { TierList } from '../components/TierList';
+import ProfilePage from '../pages/ProfilePage';
 
-function Home() {
-  const [steamId, setSteamId] = useState('');
+interface HomeProps {
+  user: any;
+  onLogout: () => void;
+}
+
+function Home({ user, onLogout }: HomeProps) {
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [library, setLibrary] = useState<any>(null);
@@ -67,32 +72,22 @@ function Home() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Load library on mount
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const steamIdFromUrl = params.get('steamId');
-
-    if (steamIdFromUrl) {
-      setSteamId(steamIdFromUrl);
-      window.history.replaceState({}, '', window.location.pathname);
-      loadFromDB(steamIdFromUrl);
+    if (user?.steamId) {
+      loadFromDB(user.steamId);
     }
-  }, []);
+  }, [user]);
 
-  const handleSteamLogin = () => {
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    window.location.href = `${backendUrl}/api/auth/steam`;
-  };
-
-  const loadFromDB = async (idOverride?: string) => {
-    const idToUse = idOverride || steamId;
-    if (!idToUse.trim()) return;
+  const loadFromDB = async (steamId: string) => {
+    if (!steamId) return;
 
     setLoading(true);
     setError('');
 
     try {
-      const data = await steamService.getEnrichedLibrary(idToUse);
-      setLibrary(data);
+      const data = await steamService.getEnrichedLibrary(steamId);
+      setLibrary({ ...data, userId: user.id });
     } catch (err) {
       setError('Failed to load library');
     } finally {
@@ -101,15 +96,18 @@ function Home() {
   };
 
   const syncFromSteam = async () => {
-    if (!steamId.trim()) return;
+    if (!user?.steamId) {
+      alert('Please link your Steam account in Profile settings');
+      return;
+    }
 
     setSyncing(true);
     setError('');
 
     try {
-      await steamService.getLibrary(steamId);
-      const data = await steamService.getEnrichedLibrary(steamId);
-      setLibrary(data);
+      await steamService.getLibrary(user.steamId);
+      const data = await steamService.getEnrichedLibrary(user.steamId);
+      setLibrary({ ...data, userId: user.id });
     } catch (err) {
       setError('Failed to sync from Steam');
     } finally {
@@ -118,19 +116,36 @@ function Home() {
   };
 
   const refreshFromDB = async () => {
+    if (!user?.steamId) return;
+    
     try {
-      const data = await steamService.getEnrichedLibrary(steamId);
-      setLibrary(data);
+      const data = await steamService.getEnrichedLibrary(user.steamId);
+      setLibrary({ ...data, userId: user.id });
     } catch (err) {
       console.error('Failed to refresh');
     }
   };
 
-  // Unified Sync All Emulators Handler
+  const reloadUser = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        window.location.reload(); // Reload to update user state in App.tsx
+      }
+    } catch (error) {
+      console.error('Failed to reload user');
+    }
+  };
+
   const handleSyncAllEmulators = async () => {
     try {
       setLoading(true);
-      console.log('🎮 Syncing all emulators (PCSX2, PPSSPP, RPCS3)...');
+      console.log('🎮 Syncing all emulators...');
       
       const syncResults = {
         pcsx2: { success: false, message: '' },
@@ -142,19 +157,19 @@ function Home() {
         fetch(`${API_URL}/api/pcsx2/sync`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: library?.userId })
+          body: JSON.stringify({ userId: user.id })
         }).then(r => r.json()),
         
         fetch(`${API_URL}/api/ppsspp/sync`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: library?.userId })
+          body: JSON.stringify({ userId: user.id })
         }).then(r => r.json()),
         
         fetch(`${API_URL}/api/rpcs3/sync`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: library?.userId })
+          body: JSON.stringify({ userId: user.id })
         }).then(r => r.json())
       ]);
 
@@ -174,10 +189,6 @@ function Home() {
       });
 
       console.log('📊 Sync Results:', syncResults);
-      
-      const successCount = Object.values(syncResults).filter(r => r.success).length;
-      console.log(`✅ ${successCount}/3 emulators synced successfully`);
-
       await refreshFromDB();
       
     } catch (error) {
@@ -250,309 +261,310 @@ function Home() {
       {/* Header */}
       <div className="sticky top-0 z-50 bg-slate-900/80 border-b border-slate-800/50 shadow-lg backdrop-blur-xl">
         <div className="max-w-[1800px] mx-auto px-8 py-5">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-white">Steam Tracker</h1>
               <p className="text-xs text-gray-400 font-medium">Pro Edition</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-sm font-semibold text-white">{user.displayName || user.username}</p>
+                <p className="text-xs text-gray-400">Level {user.level} • {user.xp} XP</p>
+              </div>
+              <a
+                href="/profile"
+                className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm text-gray-300 hover:bg-slate-700/50 transition-all"
+              >
+                Settings
+              </a>
+              <button
+                onClick={onLogout}
+                className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm text-gray-300 hover:bg-slate-700/50 transition-all"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-[1800px] mx-auto px-8 py-10">
-        {!steamId ? (
-          // Welcome Screen
-          <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 140px)' }}>
-            <div className="text-center space-y-8 w-full max-w-md">
-              <div className="space-y-3">
-                <h2 className="text-4xl font-bold text-white">Welcome</h2>
-                <p className="text-gray-400">Connect your Steam account to begin tracking your gaming journey</p>
+        {/* Tabs */}
+        <div className="flex gap-1 p-1.5 bg-slate-900/50 rounded-2xl border border-slate-800/50 mb-8 w-fit shadow-md">
+          {[
+            { key: 'profile', label: '👤 Profile' },
+            { key: 'journal', label: 'Journal' },
+            { key: 'dashboard', label: 'Dashboard' },
+            { key: 'wishlist', label: 'Wishlist' },
+            { key: 'recommendations', label: 'Recommendations' },
+            { key: 'analytics', label: 'Analytics' },
+            { key: 'tierlist', label: '🏆 Tier List' },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key as TabType)}
+              className={`group relative px-7 py-3 rounded-xl font-semibold text-base transition-all duration-300 ${
+                activeTab === key
+                  ? 'bg-blue-600/20 text-white shadow-lg border border-blue-500/30'
+                  : 'text-gray-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              {label}
+              {activeTab === key && (
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/20 to-transparent pointer-events-none" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Compressed Toolbar */}
+        {activeTab !== 'profile' && activeTab !== 'wishlist' && activeTab !== 'recommendations' && activeTab !== 'analytics' && activeTab !== 'tierlist' && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between gap-4">
+              {/* Left Side - Filters */}
+              <div className="flex items-center gap-3">
+                {/* Sort Dropdown */}
+                <div className="relative" ref={sortDropdownRef}>
+                  <button
+                    onClick={() => setShowSortDropdown(!showSortDropdown)}
+                    className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-slate-700/50 transition-all flex items-center gap-2"
+                  >
+                    <span className="text-xs uppercase tracking-wider text-gray-500">SORT BY</span>
+                    <span className="text-white">{getSortLabel()}</span>
+                    <svg className={`w-4 h-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {showSortDropdown && (
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-50 overflow-hidden">
+                      {[
+                        { field: 'name' as SortField, label: 'Recent' },
+                        { field: 'playtime' as SortField, label: 'Playtime ↓' },
+                        { field: 'pricePaid' as SortField, label: 'Price' },
+                        { field: 'pricePerHour' as SortField, label: 'Price/Hour' },
+                        { field: 'rating' as SortField, label: 'Rating' },
+                      ].map(({ field, label }) => (
+                        <button
+                          key={field}
+                          onClick={() => handleSort(field)}
+                          className={`w-full px-4 py-2.5 text-left hover:bg-slate-700/50 transition-colors ${
+                            sortField === field ? 'bg-blue-600/20 text-blue-300' : 'text-gray-300'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Platform Dropdown */}
+                <div className="relative" ref={platformDropdownRef}>
+                  <button
+                    onClick={() => setShowPlatformDropdown(!showPlatformDropdown)}
+                    className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-slate-700/50 transition-all flex items-center gap-2"
+                  >
+                    <span className="text-xs uppercase tracking-wider text-gray-500">PLATFORM</span>
+                    {filterPlatform !== 'all' && (
+                      <PlatformBadge platform={filterPlatform} showLabel={false} />
+                    )}
+                    <span className="text-white">{filterPlatform === 'all' ? 'All' : getPlatformLabel()}</span>
+                    <svg className={`w-4 h-4 transition-transform ${showPlatformDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {showPlatformDropdown && (
+                    <div className="absolute top-full left-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-50 overflow-hidden max-h-96 overflow-y-auto">
+                      <button
+                        onClick={() => {
+                          setFilterPlatform('all');
+                          setShowPlatformDropdown(false);
+                        }}
+                        className={`w-full px-4 py-2.5 text-left hover:bg-slate-700/50 transition-colors flex items-center gap-2 ${
+                          filterPlatform === 'all' ? 'bg-blue-600/20 text-blue-300' : 'text-gray-300'
+                        }`}
+                      >
+                        <span>All</span>
+                        <span className="ml-auto text-xs text-gray-500">({library?.count || 0})</span>
+                      </button>
+                      {Object.entries(platformCounts).map(([platform, count]) => (
+                        <button
+                          key={platform}
+                          onClick={() => {
+                            setFilterPlatform(platform);
+                            setShowPlatformDropdown(false);
+                          }}
+                          className={`w-full px-4 py-2.5 text-left hover:bg-slate-700/50 transition-colors flex items-center gap-2 ${
+                            filterPlatform === platform ? 'bg-blue-600/20 text-blue-300' : 'text-gray-300'
+                          }`}
+                        >
+                          <PlatformBadge platform={platform} showLabel={false} />
+                          <span className="capitalize">{platform}</span>
+                          <span className="ml-auto text-xs text-gray-500">({count as number})</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Status Dropdown */}
+                <div className="relative" ref={statusDropdownRef}>
+                  <button
+                    onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                    className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-slate-700/50 transition-all flex items-center gap-2"
+                  >
+                    <span className="text-xs uppercase tracking-wider text-gray-500">LABEL</span>
+                    <span className="text-white">{getStatusLabel()}</span>
+                    <svg className={`w-4 h-4 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {showStatusDropdown && (
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-50 overflow-hidden">
+                      {[
+                        { key: 'all', label: 'All', count: statusCounts.all },
+                        { key: 'playing', label: 'Playing', count: statusCounts.playing },
+                        { key: 'completed', label: 'Completed', count: statusCounts.completed },
+                        { key: 'backlog', label: 'Backlog', count: statusCounts.backlog },
+                      ].map(({ key, label, count }) => (
+                        <button
+                          key={key}
+                          onClick={() => {
+                            setFilterStatus(key);
+                            setShowStatusDropdown(false);
+                          }}
+                          className={`w-full px-4 py-2.5 text-left hover:bg-slate-700/50 transition-colors flex items-center justify-between ${
+                            filterStatus === key ? 'bg-blue-600/20 text-blue-300' : 'text-gray-300'
+                          }`}
+                        >
+                          <span>{label}</span>
+                          <span className="text-xs text-gray-500">{count}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    className="px-4 py-2 pl-10 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 w-64"
+                  />
+                  <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
               </div>
-              <button
-                onClick={handleSteamLogin}
-                className="px-8 py-4 bg-slate-800/50 border border-slate-700/50 text-white font-semibold rounded-2xl shadow-md hover:bg-slate-700/50 transition-all duration-300"
-              >
-                Sign in with Steam
-              </button>
+
+              {/* Right Side - Actions */}
+              <div className="flex items-center gap-2">
+                <AddGameMenu 
+                  userId={user.id} 
+                  onGameAdded={refreshFromDB}
+                  onSyncRA={() => setShowSyncRAModal(true)}
+                  onAddRAGame={() => setShowAddRAGameModal(true)}
+                  onAutoLinkISOs={() => setShowAutoLinkISOsModal(true)}
+                  onAddAppleGame={() => setShowAddAppleGameModal(true)}
+                  onAddMinecraftWorld={() => setShowAddMinecraftWorldModal(true)}
+                />
+
+                <button
+                  onClick={syncFromSteam}
+                  disabled={syncing || !user.steamId}
+                  className="px-6 py-2.5 bg-slate-800/50 rounded-xl border border-slate-700/50 font-semibold hover:bg-slate-700/50 transition-all duration-300 shadow-md disabled:opacity-50 text-white"
+                >
+                  {syncing ? '⟳ Syncing...' : '⟳ Sync Steam'}
+                </button>
+
+                <button
+                  onClick={handleSyncAllEmulators}
+                  disabled={loading}
+                  className="px-6 py-2.5 bg-slate-800/50 rounded-xl border border-slate-700/50 font-semibold hover:bg-slate-700/50 transition-all duration-300 shadow-md disabled:opacity-50 text-white"
+                >
+                  {loading ? '⟳ Syncing...' : '🕹️ Sync All Emulators'}
+                </button>
+              </div>
             </div>
           </div>
-        ) : (
-          <>
-            {/* Tabs */}
-            <div className="flex gap-1 p-1.5 bg-slate-900/50 rounded-2xl border border-slate-800/50 mb-8 w-fit shadow-md">
-              {[
-                { key: 'journal', label: 'Journal' },
-                { key: 'dashboard', label: 'Dashboard' },
-                { key: 'wishlist', label: 'Wishlist' },
-                { key: 'recommendations', label: 'Recommendations' },
-                { key: 'analytics', label: 'Analytics' },
-                { key: 'tierlist', label: 'Tier List' },
-              ].map(({ key, label }) => (
-                <button
-                  key={key}
-                  onClick={() => setActiveTab(key as TabType)}
-                  className={`group relative px-7 py-3 rounded-xl font-semibold text-base transition-all duration-300 ${
-                    activeTab === key
-                      ? 'bg-blue-600/20 text-white shadow-lg border border-blue-500/30'
-                      : 'text-gray-400 hover:text-white hover:bg-slate-800/50'
-                  }`}
-                >
-                  {label}
-                  {activeTab === key && (
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/20 to-transparent pointer-events-none" />
-                  )}
-                </button>
-              ))}
+        )}
+
+        {/* Error */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-300 shadow-md">
+            {error}
+          </div>
+        )}
+
+        {/* Loading */}
+        {loading && (
+          <div className="flex items-center justify-center py-40">
+            <div className="relative">
+              <div className="w-20 h-20 border-4 border-slate-800/50 border-t-blue-500 rounded-full animate-spin" />
+              <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-cyan-500 rounded-full animate-spin" style={{ animationDelay: '150ms' }} />
             </div>
+          </div>
+        )}
 
-            {/* Compressed Toolbar - Like Reference Image */}
-            {activeTab !== 'wishlist' && activeTab !== 'recommendations' && activeTab !== 'analytics' && activeTab !== 'tierlist' && (
-              <div className="mb-8">
-                <div className="flex items-center justify-between gap-4">
-                  {/* Left Side - Compressed Filters */}
-                  <div className="flex items-center gap-3">
-                    {/* Sort Dropdown */}
-                    <div className="relative" ref={sortDropdownRef}>
-                      <button
-                        onClick={() => setShowSortDropdown(!showSortDropdown)}
-                        className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-slate-700/50 transition-all flex items-center gap-2"
-                      >
-                        <span className="text-xs uppercase tracking-wider text-gray-500">SORT BY</span>
-                        <span className="text-white">{getSortLabel()}</span>
-                        <svg className={`w-4 h-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                      
-                      {showSortDropdown && (
-                        <div className="absolute top-full left-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-50 overflow-hidden">
-                          {[
-                            { field: 'name' as SortField, label: 'Recent' },
-                            { field: 'playtime' as SortField, label: 'Playtime ↓' },
-                            { field: 'pricePaid' as SortField, label: 'Price' },
-                            { field: 'pricePerHour' as SortField, label: 'Price/Hour' },
-                            { field: 'rating' as SortField, label: 'Rating' },
-                          ].map(({ field, label }) => (
-                            <button
-                              key={field}
-                              onClick={() => handleSort(field)}
-                              className={`w-full px-4 py-2.5 text-left hover:bg-slate-700/50 transition-colors ${
-                                sortField === field ? 'bg-blue-600/20 text-blue-300' : 'text-gray-300'
-                              }`}
-                            >
-                              {label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+        {/* Content based on active tab */}
+        {activeTab === 'profile' && (
+          <ProfilePage user={user} onUpdate={reloadUser} />
+        )}
 
-                    {/* Platform Dropdown */}
-                    <div className="relative" ref={platformDropdownRef}>
-                      <button
-                        onClick={() => setShowPlatformDropdown(!showPlatformDropdown)}
-                        className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-slate-700/50 transition-all flex items-center gap-2"
-                      >
-                        <span className="text-xs uppercase tracking-wider text-gray-500">PLATFORM</span>
-                        {filterPlatform !== 'all' && (
-                          <PlatformBadge platform={filterPlatform} showLabel={false} />
-                        )}
-                        <span className="text-white">{filterPlatform === 'all' ? 'All' : getPlatformLabel()}</span>
-                        <svg className={`w-4 h-4 transition-transform ${showPlatformDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                      
-                      {showPlatformDropdown && (
-                        <div className="absolute top-full left-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-50 overflow-hidden max-h-96 overflow-y-auto">
-                          <button
-                            onClick={() => {
-                              setFilterPlatform('all');
-                              setShowPlatformDropdown(false);
-                            }}
-                            className={`w-full px-4 py-2.5 text-left hover:bg-slate-700/50 transition-colors flex items-center gap-2 ${
-                              filterPlatform === 'all' ? 'bg-blue-600/20 text-blue-300' : 'text-gray-300'
-                            }`}
-                          >
-                            <span>All</span>
-                            <span className="ml-auto text-xs text-gray-500">({library?.count || 0})</span>
-                          </button>
-                          {Object.entries(platformCounts).map(([platform, count]) => (
-                            <button
-                              key={platform}
-                              onClick={() => {
-                                setFilterPlatform(platform);
-                                setShowPlatformDropdown(false);
-                              }}
-                              className={`w-full px-4 py-2.5 text-left hover:bg-slate-700/50 transition-colors flex items-center gap-2 ${
-                                filterPlatform === platform ? 'bg-blue-600/20 text-blue-300' : 'text-gray-300'
-                              }`}
-                            >
-                              <PlatformBadge platform={platform} showLabel={false} />
-                              <span className="capitalize">{platform}</span>
-                              <span className="ml-auto text-xs text-gray-500">({count as number})</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Status (Label) Dropdown */}
-                    <div className="relative" ref={statusDropdownRef}>
-                      <button
-                        onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                        className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-slate-700/50 transition-all flex items-center gap-2"
-                      >
-                        <span className="text-xs uppercase tracking-wider text-gray-500">LABEL</span>
-                        <span className="text-white">{getStatusLabel()}</span>
-                        <svg className={`w-4 h-4 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                      
-                      {showStatusDropdown && (
-                        <div className="absolute top-full left-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-50 overflow-hidden">
-                          {[
-                            { key: 'all', label: 'All', count: statusCounts.all },
-                            { key: 'playing', label: 'Playing', count: statusCounts.playing },
-                            { key: 'completed', label: 'Completed', count: statusCounts.completed },
-                            { key: 'backlog', label: 'Backlog', count: statusCounts.backlog },
-                          ].map(({ key, label, count }) => (
-                            <button
-                              key={key}
-                              onClick={() => {
-                                setFilterStatus(key);
-                                setShowStatusDropdown(false);
-                              }}
-                              className={`w-full px-4 py-2.5 text-left hover:bg-slate-700/50 transition-colors flex items-center justify-between ${
-                                filterStatus === key ? 'bg-blue-600/20 text-blue-300' : 'text-gray-300'
-                              }`}
-                            >
-                              <span>{label}</span>
-                              <span className="text-xs text-gray-500">{count}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Search Bar */}
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Search..."
-                        className="px-4 py-2 pl-10 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 w-64"
-                      />
-                      <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {/* Right Side - Action Buttons */}
-                  <div className="flex items-center gap-2">
-                    <AddGameMenu 
-                      userId={library?.userId || ''} 
-                      onGameAdded={refreshFromDB}
-                      onSyncRA={() => setShowSyncRAModal(true)}
-                      onAddRAGame={() => setShowAddRAGameModal(true)}
-                      onAutoLinkISOs={() => setShowAutoLinkISOsModal(true)}
-                      onAddAppleGame={() => setShowAddAppleGameModal(true)}
-                      onAddMinecraftWorld={() => setShowAddMinecraftWorldModal(true)}
-                    />
-
-                    <button
-                      onClick={syncFromSteam}
-                      disabled={syncing}
-                      className="px-6 py-2.5 bg-slate-800/50 rounded-xl border border-slate-700/50 font-semibold hover:bg-slate-700/50 transition-all duration-300 shadow-md disabled:opacity-50 text-white"
-                    >
-                      {syncing ? '⟳ Syncing...' : '⟳ Sync Steam'}
-                    </button>
-
-                    <button
-                      onClick={handleSyncAllEmulators}
-                      disabled={loading}
-                      className="px-6 py-2.5 bg-slate-800/50 rounded-xl border border-slate-700/50 font-semibold hover:bg-slate-700/50 transition-all duration-300 shadow-md disabled:opacity-50 text-white"
-                    >
-                      {loading ? '⟳ Syncing...' : 'Sync All Emulators'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Error */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-300 shadow-md">
-                {error}
-              </div>
-            )}
-
-            {/* Loading */}
-            {loading && (
-              <div className="flex items-center justify-center py-40">
-                <div className="relative">
-                  <div className="w-20 h-20 border-4 border-slate-800/50 border-t-blue-500 rounded-full animate-spin" />
-                  <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-cyan-500 rounded-full animate-spin" style={{ animationDelay: '150ms' }} />
-                </div>
-              </div>
-            )}
-
-            {/* Journal View */}
-            {activeTab === 'journal' && !loading && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-5">
-                {filteredGames.map((game) => (
-                  <GameCard
-                    key={game.id}
-                    game={game}
-                    onClick={() => setSelectedGame(game)}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Dashboard */}
-            {activeTab === 'dashboard' && !loading && (
-              <GameTable
-                games={filteredGames}
-                onGameClick={setSelectedGame}
-                onRefresh={refreshFromDB}
-                steamId={steamId}
+        {activeTab === 'journal' && !loading && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-5">
+            {filteredGames.map((game) => (
+              <GameCard
+                key={game.id}
+                game={game}
+                onClick={() => setSelectedGame(game)}
               />
-            )}
+            ))}
+          </div>
+        )}
 
-            {/* Wishlist */}
-            {activeTab === 'wishlist' && (
-              <SteamWishlist userId={library?.userId || ''} />
-            )}
+        {activeTab === 'dashboard' && !loading && (
+          <GameTable
+            games={filteredGames}
+            onGameClick={setSelectedGame}
+            onRefresh={refreshFromDB}
+            steamId={user.steamId || ''}
+          />
+        )}
 
-            {/* Recommendations */}
-            {activeTab === 'recommendations' && (
-              <RecommendationSystem userId={library?.userId || ''} />
-            )}
+        {activeTab === 'wishlist' && (
+          <SteamWishlist userId={user.id} />
+        )}
 
-            {/* Analytics */}
-            {activeTab === 'analytics' && !loading && (
-              <Analytics games={library?.games || []} />
-            )}
+        {activeTab === 'recommendations' && (
+          <RecommendationSystem userId={user.id} />
+        )}
 
-            {/* Tier List */}
-            {activeTab === 'tierlist' && !loading && (
-              <TierList games={library?.games || []} />
-            )}
+        {activeTab === 'analytics' && !loading && (
+          <Analytics games={library?.games || []} />
+        )}
 
-            {/* Empty State */}
-            {filteredGames.length === 0 && !loading && activeTab !== 'wishlist' && activeTab !== 'recommendations' && activeTab !== 'analytics' && activeTab !== 'tierlist' && (
-              <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center mx-auto px-6">
-                  <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center shadow-md">
-                    <span className="text-4xl">🎮</span>
-                  </div>
-                  <p className="text-gray-400 text-lg font-medium">No games found</p>
-                </div>
+        {activeTab === 'tierlist' && !loading && (
+          <TierList games={library?.games || []} />
+        )}
+
+        {/* Empty State */}
+        {filteredGames.length === 0 && !loading && activeTab !== 'profile' && activeTab !== 'wishlist' && activeTab !== 'recommendations' && activeTab !== 'analytics' && activeTab !== 'tierlist' && (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center mx-auto px-6">
+              <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center shadow-md">
+                <span className="text-4xl">🎮</span>
               </div>
-            )}
-          </>
+              <p className="text-gray-400 text-lg font-medium">No games found</p>
+              {!user.steamId && (
+                <p className="text-gray-500 text-sm mt-2">Link your Steam account in Profile to get started!</p>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
@@ -562,47 +574,44 @@ function Home() {
           game={selectedGame}
           onClose={() => setSelectedGame(null)}
           onUpdate={refreshFromDB}
-          steamId={steamId}
+          steamId={user.steamId || ''}
         />
       )}
 
-      {/* RetroAchievements Modals */}
+      {/* Modals */}
       <SyncRALibraryModal
         isOpen={showSyncRAModal}
         onClose={() => setShowSyncRAModal(false)}
         onSync={refreshFromDB}
-        userId={library?.userId || ''}
+        userId={user.id}
       />
 
       <AddRAGameModal
         isOpen={showAddRAGameModal}
         onClose={() => setShowAddRAGameModal(false)}
         onAdd={refreshFromDB}
-        userId={library?.userId || ''}
+        userId={user.id}
       />
 
-      {/* PCSX2 Modals */}
       <AutoLinkISOsModal
         isOpen={showAutoLinkISOsModal}
         onClose={() => setShowAutoLinkISOsModal(false)}
         onLink={refreshFromDB}
-        userId={library?.userId || ''}
+        userId={user.id}
       />
 
-      {/* Apple Game Center Modal */}
       <AddAppleGameModal
         isOpen={showAddAppleGameModal}
         onClose={() => setShowAddAppleGameModal(false)}
         onAdd={refreshFromDB}
-        userId={library?.userId || ''}
+        userId={user.id}
       />
 
-      {/* Minecraft Modal */}
       <AddMinecraftWorldModal
         isOpen={showAddMinecraftWorldModal}
         onClose={() => setShowAddMinecraftWorldModal(false)}
         onAdd={refreshFromDB}
-        userId={library?.userId || ''}
+        userId={user.id}
       />
     </div>
   );

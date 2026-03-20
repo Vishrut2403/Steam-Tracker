@@ -4,17 +4,19 @@ class WishlistService {
   async getUserWishlist(userId: string) {
     const items = await prisma.steamWishlist.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { recommendationScore: 'desc' },
     });
 
     return items;
   }
 
   async createWishlistItem(userId: string, data: {
+    appId: string;
     name: string;
     tags: string[];
     listPrice: number;
     currentPrice: number;
+    imageUrl?: string;
   }) {
     const discountPercent = data.listPrice > 0 
       ? Math.round(((data.listPrice - data.currentPrice) / data.listPrice) * 100)
@@ -23,11 +25,13 @@ class WishlistService {
     const item = await prisma.steamWishlist.create({
       data: {
         userId,
+        appId: data.appId,
         name: data.name,
         tags: data.tags,
         listPrice: data.listPrice,
         currentPrice: data.currentPrice,
         discountPercent,
+        imageUrl: data.imageUrl,
       },
     });
 
@@ -39,6 +43,7 @@ class WishlistService {
     tags?: string[];
     listPrice?: number;
     currentPrice?: number;
+    imageUrl?: string;
   }) {
     const existing = await prisma.steamWishlist.findFirst({
       where: { id, userId },

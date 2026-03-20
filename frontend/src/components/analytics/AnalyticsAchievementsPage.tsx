@@ -11,9 +11,9 @@ export const AnalyticsAchievementsPage: React.FC<AnalyticsAchievementsPageProps>
   
   const perfectGames = useMemo(() => {
     return games.filter(g => 
-      g.totalAchievements && 
-      g.totalAchievements > 0 && 
-      g.completedAchievements === g.totalAchievements
+      g.achievementsTotal && 
+      g.achievementsTotal > 0 && 
+      g.achievementsEarned === g.achievementsTotal
     );
   }, [games]);
   
@@ -28,7 +28,7 @@ export const AnalyticsAchievementsPage: React.FC<AnalyticsAchievementsPageProps>
     };
     
     games.forEach(game => {
-      const count = game.totalAchievements || 0;
+      const count = game.achievementsTotal || 0;
       if (count === 0) return;
       if (count <= 10) buckets['0-10']++;
       else if (count <= 25) buckets['10-25']++;
@@ -43,10 +43,10 @@ export const AnalyticsAchievementsPage: React.FC<AnalyticsAchievementsPageProps>
   
   const topProgress = useMemo(() => {
     return [...games]
-      .filter(g => (g.totalAchievements || 0) > 0)
+      .filter(g => (g.achievementsTotal || 0) > 0)
       .map(g => ({
         ...g,
-        progress: Math.round(((g.completedAchievements || 0) / (g.totalAchievements || 1)) * 100)
+        progress: Math.round(((g.achievementsEarned || 0) / (g.achievementsTotal || 1)) * 100)
       }))
       .sort((a, b) => {
         if (a.progress === 100 && b.progress !== 100) return 1;
@@ -103,7 +103,7 @@ export const AnalyticsAchievementsPage: React.FC<AnalyticsAchievementsPageProps>
                     {game.name}
                   </div>
                   <div className="text-xs text-gray-400">
-                    {game.completedAchievements}/{game.totalAchievements}
+                    {game.achievementsEarned}/{game.achievementsTotal}
                   </div>
                 </div>
               </div>
@@ -124,10 +124,10 @@ export const AnalyticsAchievementsPage: React.FC<AnalyticsAchievementsPageProps>
                 key={idx} 
                 className="bg-slate-700/30 rounded-xl overflow-hidden border border-slate-600/30 hover:border-green-500/50 transition-all group"
               >
-                {game.headerImage && (
+                {game.imageUrl && (
                   <div className="aspect-[460/215] overflow-hidden">
                     <img 
-                      src={game.headerImage} 
+                      src={game.imageUrl} 
                       alt={game.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
@@ -139,7 +139,7 @@ export const AnalyticsAchievementsPage: React.FC<AnalyticsAchievementsPageProps>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400">
-                      {game.totalAchievements} achievements
+                      {game.achievementsTotal} achievements
                     </span>
                     <PlatformBadge platform={game.platform} showLabel={false} />
                   </div>
@@ -180,7 +180,7 @@ export const AnalyticsAchievementsPage: React.FC<AnalyticsAchievementsPageProps>
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
           <div className="text-3xl mb-2">🎯</div>
           <div className="text-2xl font-bold text-white mb-1">
-            {games.filter(g => (g.totalAchievements || 0) > 0).length}
+            {games.filter(g => (g.achievementsTotal || 0) > 0).length}
           </div>
           <div className="text-sm text-gray-400">Games with Achievements</div>
         </div>
@@ -188,7 +188,7 @@ export const AnalyticsAchievementsPage: React.FC<AnalyticsAchievementsPageProps>
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
           <div className="text-3xl mb-2">⚡</div>
           <div className="text-2xl font-bold text-white mb-1">
-            {games.filter(g => (g.achievementPercentage || 0) > 0).length}
+            {games.filter(g => (g.achievementsEarned || 0) > 0).length}
           </div>
           <div className="text-sm text-gray-400">Games Started</div>
         </div>

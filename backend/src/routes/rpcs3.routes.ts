@@ -75,7 +75,7 @@ router.post('/sync', async (req: Request, res: Response) => {
     }
 
     if (!rpcs3Service.fileExists()) {
-      console.error(`❌ File not found at: ${rpcs3Service.getConfigPath()}/games.yml`);
+      console.error(`File not found at: ${rpcs3Service.getConfigPath()}/games.yml`);
       res.status(404).json({
         success: false,
         error: `RPCS3 games.yml not found at: ${rpcs3Service.getConfigPath()}/games.yml. Make sure RPCS3 has been run at least once.`
@@ -176,7 +176,7 @@ router.post('/sync', async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
-    console.error('❌ Error syncing RPCS3:', error);
+    console.error('Error syncing RPCS3:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to sync RPCS3 playtimes'
@@ -238,12 +238,12 @@ router.post('/sync-trophies', async (req: Request, res: Response) => {
         await prisma.libraryGame.update({
           where: { id: game.id },
           data: {
-            totalAchievements: trophySet.totalTrophies,
-            completedAchievements: trophySet.unlockedTrophies,
-            achievementPercentage: trophySet.completionPercent,
+            achievementsTotal: trophySet.totalTrophies,
+            achievementsEarned: trophySet.unlockedTrophies,
             platformData: {
               ...(game.platformData as any),
               npCommId: trophySet.npCommId,
+              completionPercent: trophySet.completionPercent,
               trophies: {
                 bronze: trophySet.bronze,
                 silver: trophySet.silver,

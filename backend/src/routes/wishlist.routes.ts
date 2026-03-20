@@ -1,179 +1,178 @@
 import { Router, Request, Response } from 'express';
 import wishlistService from '../services/wishlist.service';
+import recommendationService from '../services/recommendation.service';
+import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// Get all wishlist items 
-router.get('/:userId', async (req: Request, res: Response) => {
+router.use(authMiddleware);
+
+router.get('/', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.params.userId as string;
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
 
-    const items = await wishlistService.getUserWishlist(userId);
-
+    const wishlist = await wishlistService.getUserWishlist(userId);
+    
     res.json({
       success: true,
-      count: items.length,
-      items,
+      count: wishlist.length,
+      data: wishlist
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error fetching wishlist:', error);
     res.status(500).json({
-      error: 'Failed to fetch wishlist',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      success: false,
+      error: error.message || 'Failed to fetch wishlist'
     });
   }
 });
 
-// Create wishlist item 
-router.post('/:userId', async (req: Request, res: Response) => {
+router.post('/item', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.params.userId as string;
-    const { name, tags, listPrice, currentPrice } = req.body;
-
-    if (!name || typeof name !== 'string' || name.trim().length === 0) {
-      res.status(400).json({ error: 'Name is required' });
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
       return;
     }
 
-    if (!Array.isArray(tags)) {
-      res.status(400).json({ error: 'Tags must be an array' });
-      return;
-    }
+    const { appId, name, tags, listPrice, currentPrice, imageUrl } = req.body;
 
-    if (typeof listPrice !== 'number' || listPrice < 0) {
-      res.status(400).json({ error: 'Valid list price is required' });
-      return;
-    }
-
-    if (typeof currentPrice !== 'number' || currentPrice < 0) {
-      res.status(400).json({ error: 'Valid current price is required' });
+    if (!appId || !name) {
+      res.status(400).json({
+        success: false,
+        error: 'appId and name are required'
+      });
       return;
     }
 
     const item = await wishlistService.createWishlistItem(userId, {
-      name: name.trim(),
-      tags,
-      listPrice,
-      currentPrice,
+      appId,
+      name,
+      tags: tags || [],
+      listPrice: listPrice || 0,
+      currentPrice: currentPrice || 0,
+      imageUrl
     });
-
-    res.status(201).json({
-      success: true,
-      item,
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: 'Failed to create wishlist item',
-      message: error instanceof Error ? error.message : 'Unknown error',
-    });
-  }
-});
-
-// Update wishlist item 
-router.patch('/:userId/:id', async (req: Request, res: Response) => {
-  try {
-    const userId = req.params.userId as string;
-    const id = req.params.id as string;
-    const { name, tags, listPrice, currentPrice } = req.body;
-
-    const updateData: any = {};
-
-    if (name !== undefined) {
-      if (typeof name !== 'string' || name.trim().length === 0) {
-        res.status(400).json({ error: 'Invalid name' });
-        return;
-      }
-      updateData.name = name.trim();
-    }
-
-    if (tags !== undefined) {
-      if (!Array.isArray(tags)) {
-        res.status(400).json({ error: 'Tags must be an array' });
-        return;
-      }
-      updateData.tags = tags;
-    }
-
-    if (listPrice !== undefined) {
-      if (typeof listPrice !== 'number' || listPrice < 0) {
-        res.status(400).json({ error: 'Invalid list price' });
-        return;
-      }
-      updateData.listPrice = listPrice;
-    }
-
-    if (currentPrice !== undefined) {
-      if (typeof currentPrice !== 'number' || currentPrice < 0) {
-        res.status(400).json({ error: 'Invalid current price' });
-        return;
-      }
-      updateData.currentPrice = currentPrice;
-    }
-
-    const item = await wishlistService.updateWishlistItem(id, userId, updateData);
 
     res.json({
       success: true,
-      item,
+      data: item
     });
-  } catch (error) {
-    
-    if (error instanceof Error && error.message === 'Wishlist item not found') {
-      res.status(404).json({ error: error.message });
-      return;
-    }
-
+  } catch (error: any) {
+    console.error('Error adding wishlist item:', error);
     res.status(500).json({
-      error: 'Failed to update wishlist item',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      success: false,
+      error: error.message || 'Failed to add wishlist item'
     });
   }
 });
 
-// Delete wishlist item 
-router.delete('/:userId/:id', async (req: Request, res: Response) => {
+router.patch('/item/:id', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.params.userId as string;
-    const id = req.params.id as string;
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
+
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const { name, tags, listPrice, currentPrice, imageUrl } = req.body;
+
+    const item = await wishlistService.updateWishlistItem(id, userId, {
+      name,
+      tags,
+      listPrice,
+      currentPrice,
+      imageUrl
+    });
+
+    res.json({
+      success: true,
+      data: item
+    });
+  } catch (error: any) {
+    console.error('Error updating wishlist item:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to update wishlist item'
+    });
+  }
+});
+
+router.delete('/item/:id', async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
+
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     const result = await wishlistService.deleteWishlistItem(id, userId);
 
-    res.json(result);
-  } catch (error) {
-    
-    if (error instanceof Error && error.message === 'Wishlist item not found') {
-      res.status(404).json({ error: error.message });
-      return;
-    }
-
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error: any) {
+    console.error('Error deleting wishlist item:', error);
     res.status(500).json({
-      error: 'Failed to delete wishlist item',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      success: false,
+      error: error.message || 'Failed to delete wishlist item'
     });
   }
 });
 
-// Get single wishlist item
-router.get('/:userId/:id', async (req: Request, res: Response) => {
+router.get('/item/:id', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.params.userId as string;
-    const id = req.params.id as string;
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
+
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     const item = await wishlistService.getWishlistItem(id, userId);
 
     res.json({
       success: true,
-      item,
+      data: item
     });
-  } catch (error) {
-    
-    if (error instanceof Error && error.message === 'Wishlist item not found') {
-      res.status(404).json({ error: error.message });
+  } catch (error: any) {
+    console.error('Error fetching wishlist item:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to fetch wishlist item'
+    });
+  }
+});
+
+router.get('/recommendations', async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
       return;
     }
 
+    const recommendations = await recommendationService.getRecommendations(userId);
+
+    res.json({
+      success: true,
+      count: recommendations.length,
+      data: recommendations
+    });
+  } catch (error: any) {
+    console.error('Error generating recommendations:', error);
     res.status(500).json({
-      error: 'Failed to fetch wishlist item',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      success: false,
+      error: error.message || 'Failed to generate recommendations'
     });
   }
 });

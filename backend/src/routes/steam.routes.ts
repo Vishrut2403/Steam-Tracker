@@ -5,18 +5,6 @@ import { sessionTrackingService } from '../services/session-tracking.service';
 
 const router = Router();
 
-const getTierFromRating = (rating: number | null): string | null => {
-  if (!rating) return null;
-  const tierMap: { [key: number]: string } = {
-    5: 'S',
-    4: 'A',
-    3: 'B',
-    2: 'C',
-    1: 'D',
-  };
-  return tierMap[rating] || null;
-};
-
 router.get('/library/:steamId', async (req: Request, res: Response) => {
   try {
     const steamId = req.params.steamId as string;
@@ -31,14 +19,14 @@ router.get('/library/:steamId', async (req: Request, res: Response) => {
     const user = await prisma.user.findUnique({ where: { steamId } });
     
     if (user) {
-      
       for (const steamGame of library) {
         try {
           const existingGame = await prisma.libraryGame.findUnique({
             where: {
-              userId_appId: {
+              userId_platformGameId_platform: {
                 userId: user.id,
-                appId: String(steamGame.appid)
+                platformGameId: String(steamGame.appid),
+                platform: 'steam'
               }
             }
           });
@@ -66,7 +54,7 @@ router.get('/library/:steamId', async (req: Request, res: Response) => {
             }
           }
         } catch (error) {
-          console.error(`   ⚠️ Failed to track session for ${steamGame.name}:`, error);
+          console.error(`Failed to track session for ${steamGame.name}:`, error);
         }
       }
     }
@@ -99,7 +87,7 @@ router.get('/library/:steamId/enriched', async (req: Request, res: Response) => 
     const user = await prisma.user.findUnique({
       where: { steamId },
       include: {
-        libraryGames: {
+        games: {
           where: platform ? { platform } : undefined,
           orderBy: [
             { status: 'asc' },
@@ -117,8 +105,8 @@ router.get('/library/:steamId/enriched', async (req: Request, res: Response) => 
     res.json({
       success: true,
       userId: user.id,
-      count: user.libraryGames.length,
-      games: user.libraryGames,
+      count: user.games.length,
+      games: user.games,
     });
   } catch (error) {
     res.status(500).json({
@@ -187,7 +175,13 @@ router.patch('/library/:steamId/game/:appId/price', async (req: Request, res: Re
     }
 
     const game = await prisma.libraryGame.findUnique({
-      where: { userId_appId: { userId: user.id, appId: String(appId) } },
+      where: { 
+        userId_platformGameId_platform: { 
+          userId: user.id, 
+          platformGameId: String(appId),
+          platform: 'steam'
+        } 
+      },
     });
 
     if (!game) {
@@ -195,11 +189,17 @@ router.patch('/library/:steamId/game/:appId/price', async (req: Request, res: Re
       return;
     }
 
-    const hours = game.playtimeForever / 60;
+    const hours = (game.playtimeForever || 0) / 60;
     const pricePerHour = hours > 0 ? pricePaid / hours : 0;
 
     const updated = await prisma.libraryGame.update({
-      where: { userId_appId: { userId: user.id, appId: String(appId) } },
+      where: { 
+        userId_platformGameId_platform: { 
+          userId: user.id, 
+          platformGameId: String(appId),
+          platform: 'steam'
+        } 
+      },
       data: { pricePaid, pricePerHour },
     });
 
@@ -237,7 +237,13 @@ router.patch('/library/:steamId/game/:appId/status', async (req: Request, res: R
     }
 
     const updated = await prisma.libraryGame.update({
-      where: { userId_appId: { userId: user.id, appId: String(appId) } },
+      where: { 
+        userId_platformGameId_platform: { 
+          userId: user.id, 
+          platformGameId: String(appId),
+          platform: 'steam'
+        } 
+      },
       data: updateData,
     });
 
@@ -267,11 +273,15 @@ router.patch('/library/:steamId/game/:appId/rating', async (req: Request, res: R
       return;
     }
 
-    const tier = getTierFromRating(rating);
-
     const updated = await prisma.libraryGame.update({
-      where: { userId_appId: { userId: user.id, appId: String(appId) } },
-      data: { rating, tier },
+      where: { 
+        userId_platformGameId_platform: { 
+          userId: user.id, 
+          platformGameId: String(appId),
+          platform: 'steam'
+        } 
+      },
+      data: { rating },
     });
 
     res.json({ success: true, game: updated });
@@ -314,7 +324,13 @@ router.patch('/library/:steamId/game/:appId/tags', async (req: Request, res: Res
     }
 
     const updated = await prisma.libraryGame.update({
-      where: { userId_appId: { userId: user.id, appId: String(appId) } },
+      where: { 
+        userId_platformGameId_platform: { 
+          userId: user.id, 
+          platformGameId: String(appId),
+          platform: 'steam'
+        } 
+      },
       data: { userTags: tags },
     });
 
@@ -350,7 +366,13 @@ router.patch('/library/:steamId/game/:appId/review', async (req: Request, res: R
     }
 
     const updated = await prisma.libraryGame.update({
-      where: { userId_appId: { userId: user.id, appId: String(appId) } },
+      where: { 
+        userId_platformGameId_platform: { 
+          userId: user.id, 
+          platformGameId: String(appId),
+          platform: 'steam'
+        } 
+      },
       data: { review },
     });
 
@@ -386,8 +408,14 @@ router.patch('/library/:steamId/game/:appId/image', async (req: Request, res: Re
     }
 
     const updated = await prisma.libraryGame.update({
-      where: { userId_appId: { userId: user.id, appId: String(appId) } },
-      data: { headerImage },
+      where: { 
+        userId_platformGameId_platform: { 
+          userId: user.id, 
+          platformGameId: String(appId),
+          platform: 'steam'
+        } 
+      },
+      data: { imageUrl: headerImage },
     });
 
     res.json({ success: true, game: updated });

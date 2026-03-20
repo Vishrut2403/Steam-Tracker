@@ -8,29 +8,24 @@ interface GameCardProps {
 
 export const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
   const getGameImage = (game: LibraryGame) => {
-    if (game.headerImage) return game.headerImage;
+    if (game.imageUrl) return game.imageUrl;
     
-    if (game.platform === 'steam' && game.appId) {
-      return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appId}/library_600x900.jpg`;
+    // For Steam games, extract appId from platformGameId
+    if (game.platform === 'steam') {
+      return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.platformGameId}/library_600x900.jpg`;
     }
     
     return 'https://via.placeholder.com/300x400/1a1a1a/666?text=No+Image';
   };
 
   const is100Percent = () => {
-    return game.totalAchievements && game.totalAchievements > 0 && 
-           game.completedAchievements === game.totalAchievements;
+    return game.achievementsTotal && game.achievementsTotal > 0 && 
+           game.achievementsEarned === game.achievementsTotal;
   };
 
-  const getTierColor = (tier: string | null) => {
-    const colors: { [key: string]: string } = {
-      S: 'from-red-500 to-orange-500',
-      A: 'from-orange-500 to-yellow-500',
-      B: 'from-yellow-500 to-green-500',
-      C: 'from-green-500 to-cyan-500',
-      D: 'from-cyan-500 to-blue-500',
-    };
-    return colors[tier || ''] || 'from-gray-500 to-gray-600';
+  const getAchievementPercentage = () => {
+    if (!game.achievementsTotal || game.achievementsTotal === 0) return 0;
+    return Math.round(((game.achievementsEarned || 0) / game.achievementsTotal) * 100);
   };
 
   const getConsoleDisplay = () => {
@@ -59,16 +54,11 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
           <PlatformBadge platform={game.platform} />
         </div>
 
+        {/* 100% Achievement Badge */}
         {is100Percent() && (
           <div className="absolute top-3 right-3 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-xl px-2 py-1 flex items-center gap-1 shadow-lg">
             <span className="text-white text-base">🏆</span>
             <span className="text-white text-[10px] font-bold">100%</span>
-          </div>
-        )}
-
-        {game.tier && !is100Percent() && (
-          <div className={`absolute top-3 right-3 w-11 h-11 bg-gradient-to-br ${getTierColor(game.tier)} rounded-xl flex items-center justify-center shadow-md font-bold text-white text-lg`}>
-            {game.tier}
           </div>
         )}
 
@@ -86,11 +76,12 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
             </div>
           )}
           
-          {game.totalAchievements && game.totalAchievements > 0 && (
+          {/* Achievement Progress Bar */}
+          {game.achievementsTotal && game.achievementsTotal > 0 && (
             <div className="relative h-2 bg-slate-800/50 rounded-full overflow-hidden">
               <div
                 className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-500"
-                style={{ width: `${game.achievementPercentage || 0}%` }}
+                style={{ width: `${getAchievementPercentage()}%` }}
               />
             </div>
           )}

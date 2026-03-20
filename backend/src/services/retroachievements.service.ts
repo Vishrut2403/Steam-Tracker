@@ -320,5 +320,4 @@ export class RetroAchievementsService {
   }
 }
 
-// Export singleton instance
 export const retroAchievementsService = new RetroAchievementsService();

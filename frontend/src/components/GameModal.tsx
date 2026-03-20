@@ -3,7 +3,7 @@ import steamService from '../services/steam.service';
 import { PlatformBadge } from './PlatformBadge';
 import { GameJournal } from './GameJournal';
 import type { LibraryGame } from '../types/games.types';
-import { getGameImage, getTierColor, getConsoleDisplay } from '../utils/gameHelpers';
+import { getGameImage, getConsoleDisplay } from '../utils/gameHelpers';
 
 interface GameModalProps {
   game: LibraryGame;
@@ -18,22 +18,32 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [editingReview, setEditingReview] = useState(game.review || '');
   const [savingReview, setSavingReview] = useState(false);
-  const [editingImage, setEditingImage] = useState(game.headerImage || '');
+  const [editingImage, setEditingImage] = useState(game.imageUrl || '');
   const [savingImage, setSavingImage] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [currentRating, setCurrentRating] = useState(game.rating || 0);
 
   useEffect(() => {
     setEditingReview(game.review || '');
-    setEditingImage(game.headerImage || '');
+    setEditingImage(game.imageUrl || '');
     setCurrentRating(game.rating || 0);
     setActiveTab('overview'); // Reset to overview when game changes
   }, [game]);
 
+  const getAchievementPercentage = () => {
+    if (!game.achievementsTotal || game.achievementsTotal === 0) return 0;
+    return Math.round(((game.achievementsEarned || 0) / game.achievementsTotal) * 100);
+  };
+
+  const is100Percent = () => {
+    return game.achievementsTotal && game.achievementsTotal > 0 && 
+           game.achievementsEarned === game.achievementsTotal;
+  };
+
   const updateStatus = async (status: string) => {
     try {
-      if (game.platform === 'steam' && game.appId) {
-        await steamService.updateGameStatus(steamId, game.appId, status);
+      if (game.platform === 'steam') {
+        await steamService.updateGameStatus(steamId, game.platformGameId, status);
       } else {
         await steamService.updatePlatformGame(
           game.platform,
@@ -52,8 +62,8 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
     setCurrentRating(rating);
     
     try {
-      if (game.platform === 'steam' && game.appId) {
-        await steamService.updateGameRating(steamId, game.appId, rating);
+      if (game.platform === 'steam') {
+        await steamService.updateGameRating(steamId, game.platformGameId, rating);
       } else {
         await steamService.updatePlatformGame(
           game.platform,
@@ -72,8 +82,8 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
   const handleSaveReview = async () => {
     setSavingReview(true);
     try {
-      if (game.platform === 'steam' && game.appId) {
-        await steamService.updateGameReview(steamId, game.appId, editingReview);
+      if (game.platform === 'steam') {
+        await steamService.updateGameReview(steamId, game.platformGameId, editingReview);
       } else {
         await steamService.updatePlatformGame(
           game.platform,
@@ -103,14 +113,14 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
 
     setSavingImage(true);
     try {
-      if (game.platform === 'steam' && game.appId) {
-        await steamService.updateGameImage(steamId, game.appId, editingImage);
+      if (game.platform === 'steam') {
+        await steamService.updateGameImage(steamId, game.platformGameId, editingImage);
       } else {
         await steamService.updatePlatformGame(
           game.platform,
           game.platformGameId,
           game.userId,
-          { headerImage: editingImage }
+          { imageUrl: editingImage }
         );
       }
       await onUpdate();
@@ -152,6 +162,7 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
   };
 
   const consoleDisplay = getConsoleDisplay(game);
+  const achievementPercentage = getAchievementPercentage();
 
   return (
     <div
@@ -181,7 +192,7 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
             <PlatformBadge platform={game.platform} />
             
             {/* Achievement Completion Badge */}
-            {game.totalAchievements && game.totalAchievements > 0 && game.achievementPercentage === 100 && (
+            {is100Percent() && (
               <div 
                 className="px-3 py-1.5 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-lg flex items-center gap-1.5 shadow-lg"
                 title="All achievements completed!"
@@ -191,12 +202,6 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
               </div>
             )}
           </div>
-
-          {game.tier && (
-            <div className={`absolute top-6 right-24 w-16 h-16 bg-gradient-to-br ${getTierColor(game.tier)} rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md`}>
-              {game.tier}
-            </div>
-          )}
         </div>
 
         {/* Tabs */}
@@ -251,11 +256,11 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
                   <p className="text-3xl font-bold text-white">
                     {game.platform === 'apple_gc'
                       ? 'Not tracked'
-                      : game.platform === 'retroachievements' && game.playtimeForever > 0
-                        ? `${Math.round(game.playtimeForever / 60)}h`
+                      : game.platform === 'retroachievements' && (game.playtimeForever || 0) > 0
+                        ? `${Math.round((game.playtimeForever || 0) / 60)}h`
                         : game.platform === 'retroachievements'
                           ? 'Not synced yet'
-                          : `${Math.round(game.playtimeForever / 60)}h`}
+                          : `${Math.round((game.playtimeForever || 0) / 60)}h`}
                   </p>
                 </div>
 
@@ -267,19 +272,19 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
                 )}
               </div>
 
-              {game.totalAchievements && game.totalAchievements > 0 && (
+              {game.achievementsTotal && game.achievementsTotal > 0 && (
                 <div className="p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50 shadow-md">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-sm font-semibold text-gray-300">Achievements</p>
                     <p className="text-sm font-semibold text-white">
-                      {game.completedAchievements} / {game.totalAchievements}
-                      <span className="text-gray-400 ml-2">({game.achievementPercentage}%)</span>
+                      {game.achievementsEarned || 0} / {game.achievementsTotal}
+                      <span className="text-gray-400 ml-2">({achievementPercentage}%)</span>
                     </p>
                   </div>
                   <div className="h-3 bg-slate-700/50 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500"
-                      style={{ width: `${game.achievementPercentage || 0}%` }}
+                      style={{ width: `${achievementPercentage}%` }}
                     />
                   </div>
                 </div>
