@@ -205,6 +205,7 @@ router.patch('/library/:steamId/game/:appId/price', async (req: Request, res: Re
 
     res.json({ success: true, game: updated });
   } catch (error) {
+    console.error('Error updating price:', error);
     res.status(500).json({
       error: 'Failed to update price',
       message: error instanceof Error ? error.message : 'Unknown error'
@@ -218,23 +219,35 @@ router.patch('/library/:steamId/game/:appId/status', async (req: Request, res: R
     const appId = req.params.appId as string;
     const { status } = req.body;
 
+    console.log('🎮 Status update request:', { steamId, appId, status });
+
+    if (!steamId || !appId) {
+      res.status(400).json({ error: 'Steam ID and App ID are required' });
+      return;
+    }
+
     const validStatuses = ['playing', 'completed', 'backlog', 'unplayed'];
     if (!validStatuses.includes(status)) {
-      res.status(400).json({ error: 'Invalid status' });
+      console.error('❌ Invalid status:', status);
+      res.status(400).json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
       return;
     }
 
     const user = await prisma.user.findUnique({ where: { steamId } });
     if (!user) {
+      console.error('❌ User not found for steamId:', steamId);
       res.status(404).json({ error: 'User not found' });
       return;
     }
 
+    console.log('✅ User found:', user.id);
+
     const updateData: any = { status };
     
-    if (status === 'completed') {
-      updateData.completedAt = new Date();
-    }
+    // Only set completedAt if status is completed (removed from schema if not exists)
+    // if (status === 'completed') {
+    //   updateData.completedAt = new Date();
+    // }
 
     const updated = await prisma.libraryGame.update({
       where: { 
@@ -247,8 +260,15 @@ router.patch('/library/:steamId/game/:appId/status', async (req: Request, res: R
       data: updateData,
     });
 
+    console.log('✅ Status updated successfully:', updated.id, updated.status);
+
     res.json({ success: true, game: updated });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('❌ Error updating status:', error);
+    if (error.code === 'P2025') {
+      res.status(404).json({ error: 'Game not found in library' });
+      return;
+    }
     res.status(500).json({
       error: 'Failed to update status',
       message: error instanceof Error ? error.message : 'Unknown error'
@@ -262,8 +282,13 @@ router.patch('/library/:steamId/game/:appId/rating', async (req: Request, res: R
     const appId = req.params.appId as string;
     const { rating } = req.body;
 
-    if (typeof rating !== 'number' || rating < 1 || rating > 5) {
-      res.status(400).json({ error: 'Rating must be between 1 and 5' });
+    if (!steamId || !appId) {
+      res.status(400).json({ error: 'Steam ID and App ID are required' });
+      return;
+    }
+
+    if (rating !== null && (typeof rating !== 'number' || rating < 1 || rating > 5)) {
+      res.status(400).json({ error: 'Rating must be between 1 and 5 or null' });
       return;
     }
 
@@ -285,7 +310,12 @@ router.patch('/library/:steamId/game/:appId/rating', async (req: Request, res: R
     });
 
     res.json({ success: true, game: updated });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error updating rating:', error);
+    if (error.code === 'P2025') {
+      res.status(404).json({ error: 'Game not found in library' });
+      return;
+    }
     res.status(500).json({
       error: 'Failed to update rating',
       message: error instanceof Error ? error.message : 'Unknown error'
@@ -298,6 +328,11 @@ router.patch('/library/:steamId/game/:appId/tags', async (req: Request, res: Res
     const steamId = req.params.steamId as string;
     const appId = req.params.appId as string;
     const { tags } = req.body;
+
+    if (!steamId || !appId) {
+      res.status(400).json({ error: 'Steam ID and App ID are required' });
+      return;
+    }
 
     if (!Array.isArray(tags)) {
       res.status(400).json({ error: 'Tags must be an array' });
@@ -313,7 +348,7 @@ router.patch('/library/:steamId/game/:appId/tags', async (req: Request, res: Res
     );
 
     if (!validTags) {
-      res.status(400).json({ error: 'Invalid tags format' });
+      res.status(400).json({ error: 'Invalid tags format (alphanumeric, max 20 chars each)' });
       return;
     }
 
@@ -335,7 +370,12 @@ router.patch('/library/:steamId/game/:appId/tags', async (req: Request, res: Res
     });
 
     res.json({ success: true, game: updated });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error updating tags:', error);
+    if (error.code === 'P2025') {
+      res.status(404).json({ error: 'Game not found in library' });
+      return;
+    }
     res.status(500).json({
       error: 'Failed to update tags',
       message: error instanceof Error ? error.message : 'Unknown error'
@@ -349,12 +389,17 @@ router.patch('/library/:steamId/game/:appId/review', async (req: Request, res: R
     const appId = req.params.appId as string;
     const { review } = req.body;
 
-    if (typeof review !== 'string') {
-      res.status(400).json({ error: 'Review must be a string' });
+    if (!steamId || !appId) {
+      res.status(400).json({ error: 'Steam ID and App ID are required' });
       return;
     }
 
-    if (review.length > 2000) {
+    if (review !== null && typeof review !== 'string') {
+      res.status(400).json({ error: 'Review must be a string or null' });
+      return;
+    }
+
+    if (review && review.length > 2000) {
       res.status(400).json({ error: 'Review too long (max 2000 characters)' });
       return;
     }
@@ -373,11 +418,16 @@ router.patch('/library/:steamId/game/:appId/review', async (req: Request, res: R
           platform: 'steam'
         } 
       },
-      data: { review },
+      data: { review: review || null },
     });
 
     res.json({ success: true, game: updated });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error updating review:', error);
+    if (error.code === 'P2025') {
+      res.status(404).json({ error: 'Game not found in library' });
+      return;
+    }
     res.status(500).json({
       error: 'Failed to update review',
       message: error instanceof Error ? error.message : 'Unknown error'
@@ -390,6 +440,11 @@ router.patch('/library/:steamId/game/:appId/image', async (req: Request, res: Re
     const steamId = req.params.steamId as string;
     const appId = req.params.appId as string;
     const { headerImage } = req.body;
+
+    if (!steamId || !appId) {
+      res.status(400).json({ error: 'Steam ID and App ID are required' });
+      return;
+    }
 
     if (!headerImage || typeof headerImage !== 'string') {
       res.status(400).json({ error: 'Valid image URL is required' });
@@ -419,7 +474,12 @@ router.patch('/library/:steamId/game/:appId/image', async (req: Request, res: Re
     });
 
     res.json({ success: true, game: updated });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error updating image:', error);
+    if (error.code === 'P2025') {
+      res.status(404).json({ error: 'Game not found in library' });
+      return;
+    }
     res.status(500).json({
       error: 'Failed to update image',
       message: error instanceof Error ? error.message : 'Unknown error'
