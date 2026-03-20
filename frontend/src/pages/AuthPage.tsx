@@ -77,7 +77,7 @@ function AuthPage() {
       <div className="w-full max-w-md">
         {/* Logo/Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Steam Tracker</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">Game Vault</h1>
           <p className="text-gray-400">Track your gaming journey across all platforms</p>
         </div>
 
