@@ -22,6 +22,7 @@ const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4'
 export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ games }) => {
   const [selectedDay, setSelectedDay] = useState<DayActivity | null>(null);
   const [sessionData, setSessionData] = useState<any[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0); // Force recalculation
   
   useEffect(() => {
     const fetchSessions = async () => {
@@ -30,12 +31,13 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
         startDate.setFullYear(startDate.getFullYear() - 1);
         const response = await api.get(`/user/sessions?startDate=${startDate.toISOString()}`);
         setSessionData(response.data.sessions || []);
+        setRefreshKey(prev => prev + 1); // Force heatmap recalculation
       } catch (err) {
         console.error('Failed to fetch sessions:', err);
       }
     };
     fetchSessions();
-  }, []);
+  }, [games]); // Refetch when games change (after sync)
   
   const stats = useMemo(() => {
     const totalGames = games.length;
@@ -109,18 +111,24 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
   }, [games, stats]);
 
   const heatmapData = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const getLocalDateString = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
     
-    const yearAgo = new Date(today);
-    yearAgo.setFullYear(today.getFullYear() - 1);
-    yearAgo.setDate(yearAgo.getDate() + 1);
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 364);
 
     const days: DayActivity[] = [];
-    const currentDate = new Date(yearAgo);
+    const currentDate = new Date(startDate);
 
-    while (currentDate <= today) {
-      const dateStr = currentDate.toISOString().split('T')[0];
+    for (let i = 0; i < 365; i++) {
+      const dateStr = getLocalDateString(currentDate);
       days.push({ date: dateStr, count: 0, hours: 0, games: [] });
       currentDate.setDate(currentDate.getDate() + 1);
     }
@@ -159,13 +167,14 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
           hours: Math.round(totalHours * 10) / 10,
           games: gamesList.sort((a, b) => b.hours - a.hours)
         };
+      } else {
       }
     });
 
     const daysWithActivity = days.filter(d => d.count > 0).length;
 
     return days;
-  }, [sessionData]);
+  }, [sessionData, refreshKey]);
 
   const getColor = (count: number): string => {
     if (count === 0) return 'bg-slate-800/30';
@@ -179,11 +188,9 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
     const result: DayActivity[][] = [];
     let currentWeek: DayActivity[] = [];
     
-    // Start from the first day of the week containing our start date
     const firstDay = new Date(heatmapData[0]?.date || new Date());
-    const firstDayOfWeek = firstDay.getDay(); // 0 = Sunday
+    const firstDayOfWeek = firstDay.getDay();
     
-    // Add empty cells for days before our data starts
     for (let i = 0; i < firstDayOfWeek; i++) {
       currentWeek.push({ date: '', count: 0, hours: 0, games: [] });
     }
@@ -197,7 +204,6 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
       }
     });
 
-    // Fill remaining days of last week
     while (currentWeek.length > 0 && currentWeek.length < 7) {
       currentWeek.push({ date: '', count: 0, hours: 0, games: [] });
     }
@@ -235,172 +241,142 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
   const activeStreak = useMemo(() => {
     let streak = 0;
     const reversedData = [...heatmapData].reverse();
+    
     for (const day of reversedData) {
-      if (day.count > 0) streak++;
-      else break;
+      if (day.count > 0) {
+        streak++;
+      } else {
+        break;
+      }
     }
+    
     return streak;
   }, [heatmapData]);
 
   return (
-    <div className="space-y-6">
-      {/* Top Stats Cards */}
+    <div className="space-y-8">
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-400 text-sm">Total Games</span>
-            <span className="text-2xl">🎮</span>
-          </div>
-          <div className="text-3xl font-bold text-white">{stats.totalGames}</div>
+        <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl">
+          <p className="text-sm text-gray-400 font-semibold mb-2">Total Games</p>
+          <p className="text-4xl font-bold text-white">{stats.totalGames}</p>
         </div>
 
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-400 text-sm">Total Playtime</span>
-            <span className="text-2xl">⏱️</span>
-          </div>
-          <div className="text-3xl font-bold text-white">{stats.totalHours}h</div>
+        <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl">
+          <p className="text-sm text-gray-400 font-semibold mb-2">Total Playtime</p>
+          <p className="text-4xl font-bold text-blue-400">{stats.totalHours}h</p>
         </div>
 
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-400 text-sm">Achievements</span>
-            <span className="text-2xl">🏆</span>
-          </div>
-          <div className="text-3xl font-bold text-white">{stats.achievementRate}%</div>
-          <div className="text-xs text-gray-500 mt-1">
-            {stats.earnedAchievements} / {stats.totalAchievements}
-          </div>
+        <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl">
+          <p className="text-sm text-gray-400 font-semibold mb-2">Achievement Rate</p>
+          <p className="text-4xl font-bold text-green-400">{stats.achievementRate}%</p>
         </div>
 
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-400 text-sm">Total Spent</span>
-            <span className="text-2xl">💰</span>
-          </div>
-          <div className="text-3xl font-bold text-white">₹{stats.totalSpent.toFixed(0)}</div>
-          <div className="text-xs text-gray-500 mt-1">
-            ₹{stats.avgPricePerHour.toFixed(2)}/hour
-          </div>
+        <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl">
+          <p className="text-sm text-gray-400 font-semibold mb-2">Completed Games</p>
+          <p className="text-4xl font-bold text-purple-400">{stats.completedGames}</p>
         </div>
       </div>
 
-      {/* Activity Heatmap */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
+      {/* Gaming Activity Heatmap */}
+      <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-xl font-bold text-white mb-1">Gaming Activity</h3>
+            <h3 className="text-2xl font-bold text-white mb-2">Gaming Activity</h3>
             <p className="text-sm text-gray-400">Click any day for details</p>
           </div>
-          <div className="flex gap-6 text-sm">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">{totalActivity}</div>
-              <div className="text-gray-400">Sessions</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-400">{activeStreak}</div>
-              <div className="text-gray-400">Day streak</div>
-            </div>
+          <div className="text-right">
+            <p className="text-sm text-gray-400">Total Sessions</p>
+            <p className="text-2xl font-bold text-white">{totalActivity}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Current Streak: {activeStreak} {activeStreak === 1 ? 'day' : 'days'}
+            </p>
           </div>
         </div>
 
-        <div className="mb-2 flex gap-[3px] ml-8">
-          {months.map((month, idx) => (
-            <div
-              key={idx}
-              className="text-xs text-gray-400"
-              style={{ marginLeft: idx === 0 ? 0 : `${(month.weekIndex - (months[idx - 1]?.weekIndex || 0)) * 15}px` }}
-            >
-              {month.label}
+        <div className="overflow-x-auto pb-4">
+          <div className="inline-block min-w-full">
+            {/* Month Labels */}
+            <div className="flex mb-2 ml-8">
+              {months.map((month, idx) => (
+                <div
+                  key={idx}
+                  className="text-xs text-gray-400 font-medium"
+                  style={{ 
+                    marginLeft: idx === 0 ? 0 : `${(month.weekIndex - (months[idx - 1]?.weekIndex || 0)) * 14}px`,
+                    minWidth: '40px'
+                  }}
+                >
+                  {month.label}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        <div className="flex gap-[3px] overflow-x-auto">
-          <div className="flex flex-col gap-[3px] text-xs text-gray-400 justify-around py-1">
-            <div>Mon</div>
-            <div>Wed</div>
-            <div>Fri</div>
-          </div>
+            {/* Day Labels + Grid */}
+            <div className="flex gap-1">
+              {/* Day of week labels */}
+              <div className="flex flex-col gap-1 text-xs text-gray-400 pr-2">
+                <div className="h-3"></div>
+                <div className="h-3">Mon</div>
+                <div className="h-3"></div>
+                <div className="h-3">Wed</div>
+                <div className="h-3"></div>
+                <div className="h-3">Fri</div>
+                <div className="h-3"></div>
+              </div>
 
-          <div className="flex gap-[3px]">
-            {weeks.map((week, weekIdx) => (
-              <div key={weekIdx} className="flex flex-col gap-[3px]">
-                {week.map((day, dayIdx) => (
-                  <div
-                    key={dayIdx}
-                    onClick={() => day.count > 0 && setSelectedDay(day)}
-                    className={`w-[12px] h-[12px] rounded-sm ${getColor(day.count)} transition-all hover:ring-2 hover:ring-white/50 ${
-                      day.count > 0 ? 'cursor-pointer' : 'cursor-default'
-                    } ${day.date === '' ? 'opacity-0' : ''}`}
-                    title={day.date ? `${day.date}: ${day.hours}h played` : ''}
-                  />
+              {/* Heatmap Grid */}
+              <div className="flex gap-1">
+                {weeks.map((week, weekIdx) => (
+                  <div key={weekIdx} className="flex flex-col gap-1">
+                    {week.map((day, dayIdx) => (
+                      <div
+                        key={dayIdx}
+                        className={`w-3 h-3 rounded-sm cursor-pointer transition-all duration-200 ${
+                          day.date ? getColor(day.count) : 'bg-transparent'
+                        } ${day.count > 0 ? 'hover:ring-2 hover:ring-blue-400 hover:scale-125' : ''}`}
+                        onClick={() => day.count > 0 && setSelectedDay(day)}
+                        title={day.date ? `${day.date}: ${day.count} game${day.count !== 1 ? 's' : ''}, ${day.hours}h` : ''}
+                      />
+                    ))}
+                  </div>
                 ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        <div className="flex items-center gap-2 mt-4 text-xs text-gray-400">
-          <span>Less</span>
-          <div className="flex gap-1">
-            <div className="w-3 h-3 rounded-sm bg-slate-800/30" />
-            <div className="w-3 h-3 rounded-sm bg-green-900/50" />
-            <div className="w-3 h-3 rounded-sm bg-green-700/70" />
-            <div className="w-3 h-3 rounded-sm bg-green-500" />
+            {/* Legend */}
+            <div className="flex items-center gap-2 mt-4 text-xs text-gray-400">
+              <span>Less</span>
+              <div className="w-3 h-3 rounded-sm bg-slate-800/30"></div>
+              <div className="w-3 h-3 rounded-sm bg-green-900/50"></div>
+              <div className="w-3 h-3 rounded-sm bg-green-700/70"></div>
+              <div className="w-3 h-3 rounded-sm bg-green-500"></div>
+              <span>More</span>
+            </div>
           </div>
-          <span>More</span>
         </div>
       </div>
 
-      {/* Day Details Modal */}
-      {selectedDay && selectedDay.date && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedDay(null)}
-        >
-          <div 
-            className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {/* Day Detail Modal */}
+      {selectedDay && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedDay(null)}>
+          <div className="bg-slate-900/95 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-xl font-bold text-white">
-                  {new Date(selectedDay.date).toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
-                </h3>
+                <h3 className="text-xl font-bold text-white">{new Date(selectedDay.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>
                 <p className="text-sm text-gray-400 mt-1">
-                  {selectedDay.hours}h total • {selectedDay.games.length} game{selectedDay.games.length !== 1 ? 's' : ''}
+                  {selectedDay.count} game{selectedDay.count !== 1 ? 's' : ''} • {selectedDay.hours}h total
                 </p>
               </div>
-              <button
-                onClick={() => setSelectedDay(null)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <button onClick={() => setSelectedDay(null)} className="text-gray-400 hover:text-white text-2xl">×</button>
             </div>
 
-            <div className="space-y-3 max-h-96 overflow-y-auto">
+            <div className="space-y-3">
               {selectedDay.games.map((game, idx) => (
-                <div 
-                  key={idx}
-                  className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50"
-                >
+                <div key={idx} className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700/50">
                   <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="font-semibold text-white">{game.name}</div>
-                      <div className="text-sm text-gray-400 mt-1">
-                        {game.hours}h played
-                      </div>
-                    </div>
-                    <div className="text-2xl">🎮</div>
+                    <p className="text-white font-medium">{game.name}</p>
+                    <p className="text-green-400 font-semibold">{game.hours}h</p>
                   </div>
                 </div>
               ))}
@@ -411,24 +387,26 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-          <h3 className="text-xl font-bold text-white mb-4">Gaming Profile</h3>
+        {/* Gaming Profile Radar */}
+        <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl">
+          <h3 className="text-xl font-bold text-white mb-6">Gaming Profile</h3>
           <ResponsiveContainer width="100%" height={300}>
             <RadarChart data={radarData}>
               <PolarGrid stroke="#475569" />
-              <PolarAngleAxis dataKey="metric" stroke="#9ca3af" />
-              <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#9ca3af" />
-              <Radar name="Score" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
+              <PolarAngleAxis dataKey="metric" stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+              <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#475569" tick={{ fill: '#64748b', fontSize: 10 }} />
+              <Radar name="Profile" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px' }}
+                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '12px' }}
                 labelStyle={{ color: '#f1f5f9' }}
               />
             </RadarChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-          <h3 className="text-xl font-bold text-white mb-4">Platform Distribution</h3>
+        {/* Platform Distribution */}
+        <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl">
+          <h3 className="text-xl font-bold text-white mb-6">Platform Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -436,7 +414,7 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
+                label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
@@ -446,51 +424,14 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
                 ))}
               </Pie>
               <Tooltip 
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px' }}
-                labelStyle={{ color: '#f1f5f9' }}
+                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '12px' }}
               />
-              <Legend />
+              <Legend 
+                wrapperStyle={{ color: '#94a3b8' }}
+                iconType="circle"
+              />
             </PieChart>
           </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Status Distribution */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-          <div className="text-sm text-gray-400 mb-2">Completed</div>
-          <div className="text-3xl font-bold text-green-400">{stats.completedGames}</div>
-          <div className="text-xs text-gray-500 mt-1">
-            {games.length > 0 ? Math.round((stats.completedGames / games.length) * 100) : 0}% of library
-          </div>
-        </div>
-
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-          <div className="text-sm text-gray-400 mb-2">Playing</div>
-          <div className="text-3xl font-bold text-blue-400">{stats.playingGames}</div>
-          <div className="text-xs text-gray-500 mt-1">
-            {games.length > 0 ? Math.round((stats.playingGames / games.length) * 100) : 0}% of library
-          </div>
-        </div>
-
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-          <div className="text-sm text-gray-400 mb-2">Backlog</div>
-          <div className="text-3xl font-bold text-yellow-400">{stats.backlogGames}</div>
-          <div className="text-xs text-gray-500 mt-1">
-            {games.length > 0 ? Math.round((stats.backlogGames / games.length) * 100) : 0}% of library
-          </div>
-        </div>
-
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-          <div className="text-sm text-gray-400 mb-2">Unplayed</div>
-          <div className="text-3xl font-bold text-gray-400">
-            {games.length - stats.completedGames - stats.playingGames - stats.backlogGames}
-          </div>
-          <div className="text-xs text-gray-500 mt-1">
-            {games.length > 0 
-              ? Math.round(((games.length - stats.completedGames - stats.playingGames - stats.backlogGames) / games.length) * 100) 
-              : 0}% of library
-          </div>
         </div>
       </div>
     </div>
