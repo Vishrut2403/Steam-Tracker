@@ -137,6 +137,13 @@ model SteamWishlist {
   discountPercent     Int
   recommendationScore Int?
   imageUrl            String?
+
+  // HLTB data
+  hltbMain            Float?   
+  hltbExtra           Float?  
+  hltbCompletionist   Float? 
+  hltbName            String?
+
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   

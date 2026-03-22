@@ -17,6 +17,7 @@ import ppssppRoutes from './routes/ppsspp.routes';
 import sessionsRoutes from './routes/sessions.routes';
 import journalRoutes from './routes/journal.routes';
 import userRoutes from './routes/user.routes';
+import hltbRoutes from './routes/hltb.routes';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
@@ -24,7 +25,7 @@ const isProd = process.env.NODE_ENV === 'production';
 
 app.use(cors({
   origin: isProd
-    ? true 
+    ? true
     : process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true
 }));
@@ -51,6 +52,7 @@ app.use('/api/ppsspp', ppssppRoutes);
 app.use('/api/sessions', sessionsRoutes);
 app.use('/api/journal', journalRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/hltb', hltbRoutes);
 
 if (isProd) {
   const frontendPath = path.join(__dirname, '../../frontend');
@@ -63,14 +65,12 @@ if (isProd) {
 
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Unhandled error:', err);
-
   res.status(500).json({
     success: false,
     error: 'Internal server error'
   });
 });
 
-// Start Server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
@@ -80,6 +80,7 @@ app.listen(PORT, () => {
   console.log(`PCSX2: http://localhost:${PORT}/api/pcsx2`);
   console.log(`RPCS3: http://localhost:${PORT}/api/rpcs3`);
   console.log(`Journal: http://localhost:${PORT}/api/journal`);
+  console.log(`HLTB: http://localhost:${PORT}/api/hltb`);
 
   if (isProd) {
     console.log('Frontend served from Express (production mode)');
