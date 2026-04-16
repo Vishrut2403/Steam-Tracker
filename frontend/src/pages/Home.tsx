@@ -254,29 +254,29 @@ function Home({ user, onLogout }: HomeProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-gray-950 text-gray-100">
+    <div className="min-h-screen bg-[#000000] text-[#e5e5e5]">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-slate-900/80 border-b border-slate-800/50 shadow-lg backdrop-blur-xl">
+      <div className="sticky top-0 z-50 bg-[#1a1a1a] border-b border-[#333333]">
         <div className="max-w-[1800px] mx-auto px-8 py-5">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white">Game Vault</h1>
-              <p className="text-xs text-gray-400 font-medium">Pro Edition</p>
+              <h1 className="text-2xl font-bold tracking-tight text-[#e5e5e5]">Game Vault</h1>
+              <p className="text-xs text-[#a0a0a0] font-medium">Pro Edition</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm font-semibold text-white">{user.displayName || user.username}</p>
-                <p className="text-xs text-gray-400">Level {user.level} • {user.xp} XP</p>
+                <p className="text-sm font-semibold text-[#e5e5e5]">{user.displayName || user.username}</p>
+                <p className="text-xs text-[#a0a0a0]">Level {user.level} • {user.xp} XP</p>
               </div>
               <a
                 href="/profile"
-                className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm text-gray-300 hover:bg-slate-700/50 transition-all"
+                className="px-4 py-2 bg-[#5a7fa3] border border-[#5a7fa3] rounded text-sm text-[#e5e5e5] hover:bg-[#7a9fc3] transition-all"
               >
                 Settings
               </a>
               <button
                 onClick={onLogout}
-                className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm text-gray-300 hover:bg-slate-700/50 transition-all"
+                className="px-4 py-2 bg-[#5a7fa3] border border-[#5a7fa3] rounded text-sm text-[#e5e5e5] hover:bg-[#7a9fc3] transition-all"
               >
                 Logout
               </button>
@@ -287,7 +287,7 @@ function Home({ user, onLogout }: HomeProps) {
 
       <div className="max-w-[1800px] mx-auto px-8 py-10">
         {/* Tabs */}
-        <div className="flex gap-1 p-1.5 bg-slate-900/50 rounded-2xl border border-slate-800/50 mb-8 w-fit shadow-md">
+        <div className="flex gap-1 p-1.5 bg-[#1a1a1a] rounded-lg border border-[#333333] mb-8 w-fit">
           {[
             { key: 'profile', label: '👤 Profile' },
             { key: 'journal', label: 'Journal' },
@@ -300,15 +300,15 @@ function Home({ user, onLogout }: HomeProps) {
             <button
               key={key}
               onClick={() => setActiveTab(key as TabType)}
-              className={`group relative px-7 py-3 rounded-xl font-semibold text-base transition-all duration-300 ${
+              className={`group relative px-7 py-3 rounded font-semibold text-base transition-all duration-200 ${
                 activeTab === key
-                  ? 'bg-blue-600/20 text-white shadow-lg border border-blue-500/30'
-                  : 'text-gray-400 hover:text-white hover:bg-slate-800/50'
+                  ? 'bg-[#5a7fa3] text-[#e5e5e5] border border-[#7a9fc3]'
+                  : 'text-[#a0a0a0] hover:text-[#e5e5e5] hover:bg-[#333333]'
               }`}
             >
               {label}
               {activeTab === key && (
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/20 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 rounded bg-[#5a7fa3]/10 pointer-events-none" />
               )}
             </button>
           ))}
@@ -324,17 +324,17 @@ function Home({ user, onLogout }: HomeProps) {
                 <div className="relative" ref={sortDropdownRef}>
                   <button
                     onClick={() => setShowSortDropdown(!showSortDropdown)}
-                    className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-slate-700/50 transition-all flex items-center gap-2"
+                    className="px-4 py-2 bg-[#1a1a1a] border border-[#333333] rounded text-sm font-medium text-[#a0a0a0] hover:bg-[#333333] transition-all flex items-center gap-2"
                   >
-                    <span className="text-xs uppercase tracking-wider text-gray-500">SORT BY</span>
-                    <span className="text-white">{getSortLabel()}</span>
+                    <span className="text-xs uppercase tracking-wider text-[#696969]">SORT BY</span>
+                    <span className="text-[#e5e5e5]">{getSortLabel()}</span>
                     <svg className={`w-4 h-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
                   
                   {showSortDropdown && (
-                    <div className="absolute top-full left-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-50 overflow-hidden">
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-[#1a1a1a] border border-[#333333] rounded shadow-lg z-50 overflow-hidden">
                       {[
                         { field: 'name' as SortField, label: 'Recent' },
                         { field: 'playtime' as SortField, label: 'Playtime ↓' },
@@ -345,8 +345,8 @@ function Home({ user, onLogout }: HomeProps) {
                         <button
                           key={field}
                           onClick={() => handleSort(field)}
-                          className={`w-full px-4 py-2.5 text-left hover:bg-slate-700/50 transition-colors ${
-                            sortField === field ? 'bg-blue-600/20 text-blue-300' : 'text-gray-300'
+                          className={`w-full px-4 py-2.5 text-left hover:bg-[#333333] transition-colors ${
+                            sortField === field ? 'bg-[#5a7fa3] text-[#e5e5e5]' : 'text-[#a0a0a0]'
                           }`}
                         >
                           {label}
@@ -360,31 +360,31 @@ function Home({ user, onLogout }: HomeProps) {
                 <div className="relative" ref={platformDropdownRef}>
                   <button
                     onClick={() => setShowPlatformDropdown(!showPlatformDropdown)}
-                    className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-slate-700/50 transition-all flex items-center gap-2"
+                    className="px-4 py-2 bg-[#1a1a1a] border border-[#333333] rounded text-sm font-medium text-[#a0a0a0] hover:bg-[#333333] transition-all flex items-center gap-2"
                   >
-                    <span className="text-xs uppercase tracking-wider text-gray-500">PLATFORM</span>
+                    <span className="text-xs uppercase tracking-wider text-[#696969]">PLATFORM</span>
                     {filterPlatform !== 'all' && (
                       <PlatformBadge platform={filterPlatform} showLabel={false} />
                     )}
-                    <span className="text-white">{filterPlatform === 'all' ? 'All' : getPlatformLabel()}</span>
+                    <span className="text-[#e5e5e5]">{filterPlatform === 'all' ? 'All' : getPlatformLabel()}</span>
                     <svg className={`w-4 h-4 transition-transform ${showPlatformDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
                   
                   {showPlatformDropdown && (
-                    <div className="absolute top-full left-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-50 overflow-hidden max-h-96 overflow-y-auto">
+                    <div className="absolute top-full left-0 mt-2 w-56 bg-[#1a1a1a] border border-[#333333] rounded shadow-lg z-50 overflow-hidden max-h-96 overflow-y-auto">
                       <button
                         onClick={() => {
                           setFilterPlatform('all');
                           setShowPlatformDropdown(false);
                         }}
-                        className={`w-full px-4 py-2.5 text-left hover:bg-slate-700/50 transition-colors flex items-center gap-2 ${
-                          filterPlatform === 'all' ? 'bg-blue-600/20 text-blue-300' : 'text-gray-300'
+                        className={`w-full px-4 py-2.5 text-left hover:bg-[#333333] transition-colors flex items-center gap-2 ${
+                          filterPlatform === 'all' ? 'bg-[#5a7fa3] text-[#e5e5e5]' : 'text-[#a0a0a0]'
                         }`}
                       >
                         <span>All</span>
-                        <span className="ml-auto text-xs text-gray-500">({library?.count || 0})</span>
+                        <span className="ml-auto text-xs text-[#696969]">({library?.count || 0})</span>
                       </button>
                       {Object.entries(platformCounts).map(([platform, count]) => (
                         <button
@@ -393,13 +393,13 @@ function Home({ user, onLogout }: HomeProps) {
                             setFilterPlatform(platform);
                             setShowPlatformDropdown(false);
                           }}
-                          className={`w-full px-4 py-2.5 text-left hover:bg-slate-700/50 transition-colors flex items-center gap-2 ${
-                            filterPlatform === platform ? 'bg-blue-600/20 text-blue-300' : 'text-gray-300'
+                          className={`w-full px-4 py-2.5 text-left hover:bg-[#333333] transition-colors flex items-center gap-2 ${
+                            filterPlatform === platform ? 'bg-[#5a7fa3] text-[#e5e5e5]' : 'text-[#a0a0a0]'
                           }`}
                         >
                           <PlatformBadge platform={platform} showLabel={false} />
                           <span className="capitalize">{platform}</span>
-                          <span className="ml-auto text-xs text-gray-500">({count as number})</span>
+                          <span className="ml-auto text-xs text-[#696969]">({count as number})</span>
                         </button>
                       ))}
                     </div>
@@ -410,17 +410,17 @@ function Home({ user, onLogout }: HomeProps) {
                 <div className="relative" ref={statusDropdownRef}>
                   <button
                     onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                    className="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-slate-700/50 transition-all flex items-center gap-2"
+                    className="px-4 py-2 bg-[#1a1a1a] border border-[#333333] rounded text-sm font-medium text-[#a0a0a0] hover:bg-[#333333] transition-all flex items-center gap-2"
                   >
-                    <span className="text-xs uppercase tracking-wider text-gray-500">LABEL</span>
-                    <span className="text-white">{getStatusLabel()}</span>
+                    <span className="text-xs uppercase tracking-wider text-[#696969]">LABEL</span>
+                    <span className="text-[#e5e5e5]">{getStatusLabel()}</span>
                     <svg className={`w-4 h-4 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
                   
                   {showStatusDropdown && (
-                    <div className="absolute top-full left-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-50 overflow-hidden">
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-[#1a1a1a] border border-[#333333] rounded shadow-lg z-50 overflow-hidden">
                       {[
                         { key: 'all', label: 'All', count: statusCounts.all },
                         { key: 'playing', label: 'Playing', count: statusCounts.playing },
@@ -433,12 +433,12 @@ function Home({ user, onLogout }: HomeProps) {
                             setFilterStatus(key);
                             setShowStatusDropdown(false);
                           }}
-                          className={`w-full px-4 py-2.5 text-left hover:bg-slate-700/50 transition-colors flex items-center justify-between ${
-                            filterStatus === key ? 'bg-blue-600/20 text-blue-300' : 'text-gray-300'
+                          className={`w-full px-4 py-2.5 text-left hover:bg-[#333333] transition-colors flex items-center justify-between ${
+                            filterStatus === key ? 'bg-[#5a7fa3] text-[#e5e5e5]' : 'text-[#a0a0a0]'
                           }`}
                         >
                           <span>{label}</span>
-                          <span className="text-xs text-gray-500">{count}</span>
+                          <span className="text-xs text-[#696969]">{count}</span>
                         </button>
                       ))}
                     </div>
@@ -450,9 +450,9 @@ function Home({ user, onLogout }: HomeProps) {
                   <input
                     type="text"
                     placeholder="Search..."
-                    className="px-4 py-2 pl-10 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 w-64"
+                    className="px-4 py-2 pl-10 bg-[#1a1a1a] border border-[#333333] rounded-lg text-sm text-[#e5e5e5] placeholder-[#696969] focus:outline-none focus:border-[#5a7fa3] w-64"
                   />
-                  <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#696969]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
@@ -473,7 +473,7 @@ function Home({ user, onLogout }: HomeProps) {
                 <button
                   onClick={syncFromSteam}
                   disabled={syncing || !user.steamId}
-                  className="px-6 py-2.5 bg-slate-800/50 rounded-xl border border-slate-700/50 font-semibold hover:bg-slate-700/50 transition-all duration-300 shadow-md disabled:opacity-50 text-white"
+                  className="px-6 py-2.5 bg-[#1a1a1a] rounded-xl border border-[#333333] font-semibold hover:bg-[#2a2a2a] transition-all duration-300 shadow-md disabled:opacity-50 text-[#e5e5e5]"
                 >
                   {syncing ? '⟳ Syncing...' : '⟳ Sync Steam'}
                 </button>
@@ -481,7 +481,7 @@ function Home({ user, onLogout }: HomeProps) {
                 <button
                   onClick={handleSyncAllEmulators}
                   disabled={loading}
-                  className="px-6 py-2.5 bg-slate-800/50 rounded-xl border border-slate-700/50 font-semibold hover:bg-slate-700/50 transition-all duration-300 shadow-md disabled:opacity-50 text-white"
+                  className="px-6 py-2.5 bg-[#1a1a1a] rounded-xl border border-[#333333] font-semibold hover:bg-[#2a2a2a] transition-all duration-300 shadow-md disabled:opacity-50 text-[#e5e5e5]"
                 >
                   {loading ? '⟳ Syncing...' : '🕹️ Sync All Emulators'}
                 </button>
@@ -492,7 +492,7 @@ function Home({ user, onLogout }: HomeProps) {
 
         {/* Error */}
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-300 shadow-md">
+          <div className="mb-6 p-4 bg-[#8b3a3a]/10 border border-[#a84a4a] rounded-lg text-[#ff9999] shadow-md">
             {error}
           </div>
         )}
@@ -553,12 +553,12 @@ function Home({ user, onLogout }: HomeProps) {
         {filteredGames.length === 0 && !loading && activeTab !== 'profile' && activeTab !== 'wishlist' && activeTab !== 'recommendations' && activeTab !== 'analytics' && activeTab !== 'tierlist' && (
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center mx-auto px-6">
-              <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center shadow-md">
+              <div className="w-20 h-20 mx-auto mb-4 rounded-lg bg-[#1a1a1a] border border-[#333333] flex items-center justify-center shadow-md">
                 <span className="text-4xl">🎮</span>
               </div>
               <p className="text-gray-400 text-lg font-medium">No games found</p>
               {!user.steamId && (
-                <p className="text-gray-500 text-sm mt-2">Link your Steam account in Profile to get started!</p>
+                <p className="text-[#696969] text-sm mt-2">Link your Steam account in Profile to get started!</p>
               )}
             </div>
           </div>

@@ -49,13 +49,10 @@ export function AddAppleGameModal({ isOpen, userId, onAdd, onClose }: AddAppleGa
         },
       };
 
-      // Call the API directly
       await steamService.addManualGame(gameData);
       
-      // Refresh the library
       await onAdd();
       
-      // Close modal
       onClose();
     } catch (err) {
       console.error('Failed to add game:', err);
@@ -66,31 +63,31 @@ export function AddAppleGameModal({ isOpen, userId, onAdd, onClose }: AddAppleGa
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-slate-900 rounded-2xl p-6 max-w-md w-full border border-slate-700 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+      <div className="bg-[#000000] rounded-lg p-6 max-w-md w-full border border-[#333333] max-h-[90vh] overflow-y-auto">
+        <h2 className="text-2xl font-bold text-[#e5e5e5] mb-4 flex items-center gap-2">
           🍎 Add Apple Game
         </h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Game Name *</label>
+            <label className="block text-sm text-[#a0a0a0] mb-1">Game Name *</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-800 text-white rounded-lg border border-slate-700 focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-[#1a1a1a] text-[#e5e5e5] rounded border border-[#333333] focus:border-[#5a7fa3] focus:outline-none"
               placeholder="Clash of Clans"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Status</label>
+            <label className="block text-sm text-[#a0a0a0] mb-1">Status</label>
             <select
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-800 text-white rounded-lg border border-slate-700"
+              className="w-full px-3 py-2 bg-[#1a1a1a] text-[#e5e5e5] rounded border border-[#333333] focus:border-[#5a7fa3] focus:outline-none"
             >
               <option value="playing">Playing</option>
               <option value="completed">Completed</option>
@@ -100,17 +97,17 @@ export function AddAppleGameModal({ isOpen, userId, onAdd, onClose }: AddAppleGa
           </div>
 
           <div>
-            <label className="block text-sm text-gray-300 mb-2">Rating</label>
+            <label className="block text-sm text-[#a0a0a0] mb-2">Rating</label>
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
                   type="button"
                   onClick={() => setFormData({ ...formData, rating: star })}
-                  className={`w-12 h-12 rounded-lg text-2xl transition-all ${
+                  className={`w-12 h-12 rounded text-2xl transition-all ${
                     formData.rating >= star
-                      ? 'bg-yellow-500 text-white'
-                      : 'bg-slate-800 text-gray-600 hover:bg-slate-700'
+                      ? 'bg-[#5a7fa3] text-[#e5e5e5]'
+                      : 'bg-[#1a1a1a] text-[#696969] hover:bg-[#333333]'
                   }`}
                 >
                   ★
@@ -120,47 +117,52 @@ export function AddAppleGameModal({ isOpen, userId, onAdd, onClose }: AddAppleGa
           </div>
 
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Tags (comma-separated)</label>
+            <label className="block text-sm text-[#a0a0a0] mb-1">Tags (comma-separated)</label>
             <input
               type="text"
               value={formData.tags}
               onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-800 text-white rounded-lg border border-slate-700 focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-[#1a1a1a] text-[#e5e5e5] rounded border border-[#333333] focus:border-[#5a7fa3] focus:outline-none"
               placeholder="strategy, multiplayer, mobile"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Review</label>
+            <label className="block text-sm text-[#a0a0a0] mb-1">Review</label>
             <textarea
               value={formData.review}
               onChange={(e) => setFormData({ ...formData, review: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-800 text-white rounded-lg border border-slate-700 focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-[#1a1a1a] text-[#e5e5e5] rounded border border-[#333333] focus:border-[#5a7fa3] focus:outline-none"
               rows={4}
               placeholder="Your thoughts on this game..."
               maxLength={2000}
             />
-            <div className="text-xs text-gray-400 mt-1">{formData.review.length}/2000</div>
+            <div className="text-xs text-[#696969] mt-1">{formData.review.length}/2000</div>
           </div>
 
-          <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
-            <p className="text-sm text-blue-300">
+          <div className="bg-[#3a4a4a] border border-[#5a7fa3] rounded-lg p-3">
+            <p className="text-sm text-[#7a9fc3]">
               ℹ️ Note: Playtime tracking is not available for Apple Game Center games
             </p>
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-4">
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 disabled:opacity-50 font-semibold"
+              className={`flex-1 py-2 px-4 rounded font-semibold ${
+                saving
+                  ? 'bg-[#333333] cursor-not-allowed text-[#696969]'
+                  : 'bg-[#5a7fa3] hover:bg-[#7a9fc3] text-[#e5e5e5]'
+              } transition-colors`}
             >
               {saving ? 'Adding...' : 'Add Game'}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600"
+              disabled={saving}
+              className="px-4 py-2 bg-[#1a1a1a] hover:bg-[#333333] text-[#a0a0a0] rounded font-semibold transition-colors disabled:opacity-50 border border-[#333333]"
             >
               Cancel
             </button>

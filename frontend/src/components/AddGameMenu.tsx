@@ -40,7 +40,7 @@ export const AddGameMenu: React.FC<AddGameMenuProps> = ({
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="px-6 py-2.5 bg-slate-800/50 rounded-xl border border-slate-700/50 font-semibold hover:bg-slate-700/50 transition-all duration-300 shadow-md text-white flex items-center gap-2"
+        className="px-6 py-2.5 bg-[#5a7fa3] rounded border border-[#7a9fc3] font-semibold hover:bg-[#7a9fc3] transition-all duration-200 text-[#e5e5e5] flex items-center gap-2"
       >
         <span>+ Add Game</span>
         <svg
@@ -54,10 +54,10 @@ export const AddGameMenu: React.FC<AddGameMenuProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-64 bg-[#1a1a1a] border border-[#333333] rounded shadow-lg z-50 overflow-hidden">
           {/* RetroAchievements Section */}
-          <div className="border-b border-slate-700/50">
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          <div className="border-b border-[#333333]">
+            <div className="px-4 py-2 text-xs font-semibold text-[#a0a0a0] uppercase tracking-wider">
               RetroAchievements
             </div>
             <button
@@ -65,7 +65,7 @@ export const AddGameMenu: React.FC<AddGameMenuProps> = ({
                 onSyncRA();
                 setIsOpen(false);
               }}
-              className="w-full px-4 py-3 text-left hover:bg-slate-700/50 transition-colors flex items-center gap-3 text-white"
+              className="w-full px-4 py-3 text-left hover:bg-[#333333] transition-colors flex items-center gap-3 text-[#e5e5e5]"
             >
               <span className="text-lg">🎮</span>
               <span className="font-medium">Sync RA Library</span>
@@ -75,7 +75,7 @@ export const AddGameMenu: React.FC<AddGameMenuProps> = ({
                 onAddRAGame();
                 setIsOpen(false);
               }}
-              className="w-full px-4 py-3 text-left hover:bg-slate-700/50 transition-colors flex items-center gap-3 text-white"
+              className="w-full px-4 py-3 text-left hover:bg-[#333333] transition-colors flex items-center gap-3 text-[#e5e5e5]"
             >
               <span className="text-lg">➕</span>
               <span className="font-medium">Add RA Game</span>
@@ -83,8 +83,8 @@ export const AddGameMenu: React.FC<AddGameMenuProps> = ({
           </div>
 
           {/* PCSX2 Section */}
-          <div className="border-b border-slate-700/50">
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          <div className="border-b border-[#333333]">
+            <div className="px-4 py-2 text-xs font-semibold text-[#a0a0a0] uppercase tracking-wider">
               PCSX2 (PS2)
             </div>
             <button
@@ -92,41 +92,34 @@ export const AddGameMenu: React.FC<AddGameMenuProps> = ({
                 onAutoLinkISOs();
                 setIsOpen(false);
               }}
-              className="w-full px-4 py-3 text-left hover:bg-slate-700/50 transition-colors flex items-center gap-3 text-white"
+              className="w-full px-4 py-3 text-left hover:bg-[#333333] transition-colors flex items-center gap-3 text-[#e5e5e5]"
             >
               <span className="text-lg">🔗</span>
               <span className="font-medium">Auto-Link ISOs</span>
             </button>
           </div>
 
-          {/* Apple Game Center Section */}
-          <div className="border-b border-slate-700/50">
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Apple Game Center
+          {/* Other Platforms Section */}
+          <div>
+            <div className="px-4 py-2 text-xs font-semibold text-[#a0a0a0] uppercase tracking-wider">
+              Other
             </div>
             <button
               onClick={() => {
                 onAddAppleGame();
                 setIsOpen(false);
               }}
-              className="w-full px-4 py-3 text-left hover:bg-slate-700/50 transition-colors flex items-center gap-3 text-white"
+              className="w-full px-4 py-3 text-left hover:bg-[#333333] transition-colors flex items-center gap-3 text-[#e5e5e5]"
             >
               <span className="text-lg">🍎</span>
-              <span className="font-medium">Add Apple Game</span>
+              <span className="font-medium">Add Apple Arcade</span>
             </button>
-          </div>
-
-          {/* Minecraft Section */}
-          <div>
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Minecraft
-            </div>
             <button
               onClick={() => {
                 onAddMinecraftWorld();
                 setIsOpen(false);
               }}
-              className="w-full px-4 py-3 text-left hover:bg-slate-700/50 transition-colors flex items-center gap-3 text-white"
+              className="w-full px-4 py-3 text-left hover:bg-[#333333] transition-colors flex items-center gap-3 text-[#e5e5e5]"
             >
               <span className="text-lg">⛏️</span>
               <span className="font-medium">Add Minecraft World</span>

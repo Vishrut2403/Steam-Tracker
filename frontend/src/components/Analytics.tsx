@@ -27,26 +27,26 @@ export const Analytics: React.FC<AnalyticsProps> = ({ games }) => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Analytics</h1>
-        <p className="text-gray-400">Deep insights into your gaming library</p>
+        <h1 className="text-3xl font-bold text-[#e5e5e5] mb-2">Analytics</h1>
+        <p className="text-[#a0a0a0]">Deep insights into your gaming library</p>
       </div>
 
       {/* Sub-navigation */}
-      <div className="flex gap-1 p-1.5 bg-slate-900/50 rounded-2xl border border-slate-800/50 w-fit shadow-md">
+      <div className="flex gap-1 p-1.5 bg-[#1a1a1a] rounded-lg border border-[#333333] w-fit">
         {tabs.map(({ key, label, icon }) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`group relative px-6 py-3 rounded-xl font-semibold text-base transition-all duration-300 flex items-center gap-2 ${
+            className={`group relative px-6 py-3 rounded font-semibold text-base transition-all duration-200 flex items-center gap-2 ${
               activeTab === key
-                ? 'bg-blue-600/20 text-white shadow-lg border border-blue-500/30'
-                : 'text-gray-400 hover:text-white hover:bg-slate-800/50'
+                ? 'bg-[#5a7fa3] text-[#e5e5e5] border border-[#7a9fc3]'
+                : 'text-[#a0a0a0] hover:text-[#e5e5e5] hover:bg-[#333333]'
             }`}
           >
             <span>{icon}</span>
             <span>{label}</span>
             {activeTab === key && (
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/20 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 rounded bg-[#5a7fa3]/10 pointer-events-none" />
             )}
           </button>
         ))}

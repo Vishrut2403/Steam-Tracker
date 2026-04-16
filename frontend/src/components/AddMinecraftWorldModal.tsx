@@ -78,26 +78,26 @@ export function AddMinecraftWorldModal({ isOpen, userId, onAdd, onClose }: AddMi
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-slate-900 rounded-2xl p-6 max-w-2xl w-full border border-slate-700 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+      <div className="bg-[#000000] rounded-lg p-6 max-w-2xl w-full border border-[#333333] max-h-[90vh] overflow-y-auto">
+        <h2 className="text-2xl font-bold text-[#e5e5e5] mb-4 flex items-center gap-2">
           ⛏️ Add Minecraft World
         </h2>
 
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto" />
-            <p className="text-gray-400 mt-2">Scanning Prism Launcher...</p>
+            <div className="animate-spin w-8 h-8 border-2 border-[#5a7fa3] border-t-transparent rounded-full mx-auto" />
+            <p className="text-[#a0a0a0] mt-2">Scanning Prism Launcher...</p>
           </div>
         ) : instances.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-400">No Prism Launcher instances found</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-[#a0a0a0]">No Prism Launcher instances found</p>
+            <p className="text-sm text-[#696969] mt-2">
               Make sure Prism Launcher is installed at: ~/.local/share/PrismLauncher/
             </p>
             <button
               onClick={onClose}
-              className="mt-4 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600"
+              className="mt-4 px-4 py-2 bg-[#1a1a1a] text-[#a0a0a0] rounded border border-[#333333] hover:bg-[#333333]"
             >
               Close
             </button>
@@ -105,11 +105,11 @@ export function AddMinecraftWorldModal({ isOpen, userId, onAdd, onClose }: AddMi
         ) : (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Select Instance</label>
+              <label className="block text-sm text-[#a0a0a0] mb-2">Select Instance</label>
               <select
                 value={selectedInstance}
                 onChange={(e) => handleInstanceChange(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800 text-white rounded-lg border border-slate-700 focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-[#1a1a1a] text-[#e5e5e5] rounded border border-[#333333] focus:border-[#5a7fa3] focus:outline-none"
               >
                 <option value="">-- Choose an instance --</option>
                 {instances.map(instance => (
@@ -122,72 +122,42 @@ export function AddMinecraftWorldModal({ isOpen, userId, onAdd, onClose }: AddMi
 
             {currentInstance && currentInstance.worlds.length > 0 && (
               <div>
-                <label className="block text-sm text-gray-300 mb-2">Select World</label>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {currentInstance.worlds.map((world: MinecraftWorld) => {
-                    const hours = Math.floor(world.playtime / 60);
-                    const minutes = world.playtime % 60;
-
-                    return (
-                      <button
-                        key={world.path}
-                        onClick={() => setSelectedWorld(world)}
-                        className={`w-full p-4 rounded-lg border transition-all text-left ${
-                          selectedWorld?.path === world.path
-                            ? 'bg-blue-900/30 border-blue-500/50'
-                            : 'bg-slate-800 border-slate-700 hover:border-slate-600'
-                        }`}
-                      >
-                        <div className="font-semibold text-white">{world.name}</div>
-                        <div className="text-sm text-gray-400 mt-1">
-                          Playtime: {hours}h {minutes}m
-                        </div>
-                      </button>
-                    );
-                  })}
+                <label className="block text-sm text-[#a0a0a0] mb-2">Select World</label>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {currentInstance.worlds.map((world) => (
+                    <button
+                      key={world.path}
+                      onClick={() => setSelectedWorld(world)}
+                      className={`w-full p-3 text-left rounded border transition-all ${
+                        selectedWorld?.path === world.path
+                          ? 'bg-[#5a7fa3] border-[#7a9fc3] text-[#e5e5e5]'
+                          : 'bg-[#1a1a1a] border-[#333333] text-[#a0a0a0] hover:bg-[#333333]'
+                      }`}
+                    >
+                      <div className="font-medium">{world.name}</div>
+                      <div className="text-xs mt-1 opacity-75">{Math.round(world.playtime / 60)}h playtime</div>
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
 
-            {currentInstance && currentInstance.worlds.length === 0 && (
-              <div className="text-center py-4 text-gray-400">
-                No worlds found in this instance
-              </div>
-            )}
-
-            {selectedWorld && (
-              <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-                <h3 className="font-semibold text-white mb-3">World Preview</h3>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="text-gray-400">World Name:</span>
-                    <span className="text-white ml-2">{selectedWorld.name}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Instance:</span>
-                    <span className="text-white ml-2">{selectedInstance}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Playtime:</span>
-                    <span className="text-white ml-2">
-                      {Math.floor(selectedWorld.playtime / 60)}h {selectedWorld.playtime % 60}m
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-4">
               <button
                 onClick={handleAddWorld}
                 disabled={!selectedWorld || syncing}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 disabled:opacity-50 font-semibold"
+                className={`flex-1 py-2 px-4 rounded font-semibold ${
+                  !selectedWorld || syncing
+                    ? 'bg-[#333333] cursor-not-allowed text-[#696969]'
+                    : 'bg-[#5a7fa3] hover:bg-[#7a9fc3] text-[#e5e5e5]'
+                } transition-colors`}
               >
                 {syncing ? 'Adding...' : 'Add World'}
               </button>
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600"
+                disabled={syncing}
+                className="px-4 py-2 bg-[#1a1a1a] hover:bg-[#333333] text-[#a0a0a0] rounded font-semibold transition-colors disabled:opacity-50 border border-[#333333]"
               >
                 Cancel
               </button>

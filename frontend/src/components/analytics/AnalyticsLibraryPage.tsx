@@ -118,8 +118,8 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
   return (
     <div className="space-y-8">
       {/* Platform Distribution Cards */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-        <h3 className="text-xl font-bold text-white mb-4">Platform Distribution</h3>
+      <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-6">
+        <h3 className="text-xl font-bold text-[#e5e5e5] mb-4">Platform Distribution</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {platformStats.map((platform, idx) => {
             const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#6366f1'];
@@ -128,7 +128,7 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
             return (
               <div 
                 key={idx}
-                className="p-5 rounded-xl border border-slate-700/50 hover:border-slate-600/50 transition-all hover:scale-105 duration-300"
+                className="p-5 rounded-lg border border-[#333333] hover:border-[#333333]/50 transition-all hover:scale-105 duration-300"
                 style={{ 
                   backgroundColor: `${color}15`,
                   borderColor: `${color}30`
@@ -138,7 +138,7 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <PlatformBadge platform={platform.name} showLabel={false} />
-                    <span className="font-bold text-white text-lg">{platform.name}</span>
+                    <span className="font-bold text-[#e5e5e5] text-lg">{platform.name}</span>
                   </div>
                   <div 
                     className="w-3 h-3 rounded-full shadow-lg"
@@ -151,33 +151,33 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
 
                 {/* Game Count */}
                 <div className="mb-3">
-                  <div className="text-3xl font-bold text-white">{platform.games}</div>
-                  <div className="text-sm text-gray-400">total games</div>
+                  <div className="text-3xl font-bold text-[#e5e5e5]">{platform.games}</div>
+                  <div className="text-sm text-[#a0a0a0]">total games</div>
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-700/50">
+                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-[#333333]">
                   <div>
-                    <div className="text-xs text-gray-500 mb-1">Playtime</div>
+                    <div className="text-xs text-[#696969] mb-1">Playtime</div>
                     <div className="text-lg font-semibold" style={{ color }}>
                       {platform.hours}h
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 mb-1">Avg/Game</div>
+                    <div className="text-xs text-[#696969] mb-1">Avg/Game</div>
                     <div className="text-lg font-semibold" style={{ color }}>
                       {Math.round(platform.hours / platform.games)}h
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 mb-1">Achievements</div>
-                    <div className="text-lg font-semibold text-white">
+                    <div className="text-xs text-[#696969] mb-1">Achievements</div>
+                    <div className="text-lg font-semibold text-[#e5e5e5]">
                       {platform.avgCompletion}%
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-500 mb-1">Completed</div>
-                    <div className="text-lg font-semibold text-white">
+                    <div className="text-xs text-[#696969] mb-1">Completed</div>
+                    <div className="text-lg font-semibold text-[#e5e5e5]">
                       {platform.completionRate}%
                     </div>
                   </div>
@@ -185,7 +185,7 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
 
                 {/* Progress Bar */}
                 <div className="mt-3">
-                  <div className="h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-[#1a1a1a]/50 rounded-full overflow-hidden">
                     <div 
                       className="h-full rounded-full transition-all duration-500"
                       style={{ 
@@ -202,16 +202,16 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
       </div>
       
       {/* Game Cover Wall */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
+      <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-white">Game Cover Wall</h3>
+          <h3 className="text-xl font-bold text-[#e5e5e5]">Game Cover Wall</h3>
           <div className="flex gap-2">
             <button
               onClick={() => setCoverSort('mostPlayed')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 coverSort === 'mostPlayed'
-                  ? 'bg-blue-600/20 border border-blue-500/30 text-blue-300'
-                  : 'bg-slate-700/50 border border-slate-600/50 text-gray-400 hover:text-white'
+                  ? 'bg-[#5a7fa3]/20 border border-[#5a7fa3] text-blue-300'
+                  : 'bg-[#1a1a1a]/50 border border-[#333333]/50 text-[#a0a0a0] hover:text-[#e5e5e5]'
               }`}
             >
               Most Played
@@ -220,8 +220,8 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
               onClick={() => setCoverSort('mostAchievements')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 coverSort === 'mostAchievements'
-                  ? 'bg-blue-600/20 border border-blue-500/30 text-blue-300'
-                  : 'bg-slate-700/50 border border-slate-600/50 text-gray-400 hover:text-white'
+                  ? 'bg-[#5a7fa3]/20 border border-[#5a7fa3] text-blue-300'
+                  : 'bg-[#1a1a1a]/50 border border-[#333333]/50 text-[#a0a0a0] hover:text-[#e5e5e5]'
               }`}
             >
               Most Achievements
@@ -230,8 +230,8 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
               onClick={() => setCoverSort('recentlyPlayed')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 coverSort === 'recentlyPlayed'
-                  ? 'bg-blue-600/20 border border-blue-500/30 text-blue-300'
-                  : 'bg-slate-700/50 border border-slate-600/50 text-gray-400 hover:text-white'
+                  ? 'bg-[#5a7fa3]/20 border border-[#5a7fa3] text-blue-300'
+                  : 'bg-[#1a1a1a]/50 border border-[#333333]/50 text-[#a0a0a0] hover:text-[#e5e5e5]'
               }`}
             >
               Recently Played
@@ -248,7 +248,7 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
             return (
               <div 
                 key={idx} 
-                className="group relative aspect-[460/215] overflow-hidden rounded-lg border border-slate-700/50 hover:border-blue-500/50 transition-all"
+                className="group relative aspect-[460/215] overflow-hidden rounded-lg border border-[#333333] hover:border-[#5a7fa3] transition-all"
               >
                 {game.imageUrl ? (
                   <img 
@@ -258,16 +258,16 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                    <span className="text-gray-600 text-3xl">🎮</span>
+                    <span className="text-[#696969] text-3xl">🎮</span>
                   </div>
                 )}
                 
                 {/* Overlay with info */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col justify-end">
-                  <div className="text-white text-xs font-semibold mb-1 line-clamp-2">
+                  <div className="text-[#e5e5e5] text-xs font-semibold mb-1 line-clamp-2">
                     {game.name}
                   </div>
-                  <div className="flex items-center justify-between text-xs text-gray-300">
+                  <div className="flex items-center justify-between text-xs text-[#a0a0a0]">
                     <span>{formatTime(game.playtimeForever || 0)}</span>
                     {achievementPercent !== null && achievementPercent > 0 && (
                       <span>{achievementPercent}%</span>
@@ -282,8 +282,8 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
       </div>
       
       {/* Backlog Evolution */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-        <h3 className="text-xl font-bold text-white mb-4">Backlog Evolution</h3>
+      <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-6">
+        <h3 className="text-xl font-bold text-[#e5e5e5] mb-4">Backlog Evolution</h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={backlogEvolution}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -300,8 +300,8 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
       </div>
       
       {/* Completion Funnel */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-        <h3 className="text-xl font-bold text-white mb-6">Completion Funnel</h3>
+      <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-6">
+        <h3 className="text-xl font-bold text-[#e5e5e5] mb-6">Completion Funnel</h3>
         <div className="space-y-4">
           {completionFunnel.map((stage, idx) => {
             const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
@@ -310,14 +310,14 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
             return (
               <div key={idx} className="relative">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-white font-medium">{stage.stage}</span>
-                  <span className="text-gray-400 text-sm">
+                  <span className="text-[#e5e5e5] font-medium">{stage.stage}</span>
+                  <span className="text-[#a0a0a0] text-sm">
                     {stage.count} games ({stage.percentage}%)
                   </span>
                 </div>
-                <div className="h-12 bg-slate-700/30 rounded-lg overflow-hidden">
+                <div className="h-12 bg-[#2a2a2a] rounded-lg overflow-hidden">
                   <div 
-                    className="h-full flex items-center justify-start px-4 text-white font-semibold transition-all duration-500"
+                    className="h-full flex items-center justify-start px-4 text-[#e5e5e5] font-semibold transition-all duration-500"
                     style={{ 
                       width: `${stage.percentage}%`,
                       backgroundColor: color,
@@ -335,28 +335,28 @@ export const AnalyticsLibraryPage: React.FC<AnalyticsLibraryPageProps> = ({ game
       
       {/* Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
+        <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-6">
           <div className="text-3xl mb-2">📚</div>
-          <div className="text-2xl font-bold text-white mb-1">
+          <div className="text-2xl font-bold text-[#e5e5e5] mb-1">
             {games.length}
           </div>
-          <div className="text-sm text-gray-400">Total Library Size</div>
+          <div className="text-sm text-[#a0a0a0]">Total Library Size</div>
         </div>
         
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
+        <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-6">
           <div className="text-3xl mb-2">✅</div>
-          <div className="text-2xl font-bold text-white mb-1">
+          <div className="text-2xl font-bold text-[#e5e5e5] mb-1">
             {Math.round((completionFunnel[3].count / games.length) * 100)}%
           </div>
-          <div className="text-sm text-gray-400">Completion Rate</div>
+          <div className="text-sm text-[#a0a0a0]">Completion Rate</div>
         </div>
         
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
+        <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-6">
           <div className="text-3xl mb-2">📦</div>
-          <div className="text-2xl font-bold text-white mb-1">
+          <div className="text-2xl font-bold text-[#e5e5e5] mb-1">
             {games.filter(g => g.status === 'backlog' || !g.status).length}
           </div>
-          <div className="text-sm text-gray-400">Backlog Games</div>
+          <div className="text-sm text-[#a0a0a0]">Backlog Games</div>
         </div>
       </div>
     </div>

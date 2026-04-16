@@ -177,11 +177,11 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
   }, [sessionData, refreshKey]);
 
   const getColor = (count: number): string => {
-    if (count === 0) return 'bg-slate-800/30';
-    if (count === 1) return 'bg-green-900/50';
-    if (count === 2) return 'bg-green-700/70';
-    if (count >= 3) return 'bg-green-500';
-    return 'bg-slate-800/30';
+    if (count === 0) return 'bg-[#2a2a2a]';
+    if (count === 1) return 'bg-[#5a8a6a]/40';
+    if (count === 2) return 'bg-[#5a8a6a]/60';
+    if (count >= 3) return 'bg-[#7aaa8a]';
+    return 'bg-[#2a2a2a]';
   };
 
   const weeks = useMemo(() => {
@@ -257,38 +257,38 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
     <div className="space-y-8">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl">
-          <p className="text-sm text-gray-400 font-semibold mb-2">Total Games</p>
-          <p className="text-4xl font-bold text-white">{stats.totalGames}</p>
+        <div className="bg-[#000000]  rounded-lg p-6 border border-[#333333] shadow-lg">
+          <p className="text-sm text-[#a0a0a0] font-semibold mb-2">Total Games</p>
+          <p className="text-4xl font-bold text-[#e5e5e5]">{stats.totalGames}</p>
         </div>
 
-        <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl">
-          <p className="text-sm text-gray-400 font-semibold mb-2">Total Playtime</p>
-          <p className="text-4xl font-bold text-blue-400">{stats.totalHours}h</p>
+        <div className="bg-[#000000]  rounded-lg p-6 border border-[#333333] shadow-lg">
+          <p className="text-sm text-[#a0a0a0] font-semibold mb-2">Total Playtime</p>
+          <p className="text-4xl font-bold text-[#7a9fc3]">{stats.totalHours}h</p>
         </div>
 
-        <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl">
-          <p className="text-sm text-gray-400 font-semibold mb-2">Achievement Rate</p>
-          <p className="text-4xl font-bold text-green-400">{stats.achievementRate}%</p>
+        <div className="bg-[#000000]  rounded-lg p-6 border border-[#333333] shadow-lg">
+          <p className="text-sm text-[#a0a0a0] font-semibold mb-2">Achievement Rate</p>
+          <p className="text-4xl font-bold text-[#7aaa8a]">{stats.achievementRate}%</p>
         </div>
 
-        <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl">
-          <p className="text-sm text-gray-400 font-semibold mb-2">Completed Games</p>
+        <div className="bg-[#000000]  rounded-lg p-6 border border-[#333333] shadow-lg">
+          <p className="text-sm text-[#a0a0a0] font-semibold mb-2">Completed Games</p>
           <p className="text-4xl font-bold text-purple-400">{stats.completedGames}</p>
         </div>
       </div>
 
       {/* Gaming Activity Heatmap */}
-      <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl">
+      <div className="bg-[#000000]  rounded-lg p-6 border border-[#333333] shadow-lg">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-2xl font-bold text-white mb-2">Gaming Activity</h3>
-            <p className="text-sm text-gray-400">Click any day for details</p>
+            <h3 className="text-2xl font-bold text-[#e5e5e5] mb-2">Gaming Activity</h3>
+            <p className="text-sm text-[#a0a0a0]">Click any day for details</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-400">Total Sessions</p>
-            <p className="text-2xl font-bold text-white">{totalActivity}</p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-sm text-[#a0a0a0]">Total Sessions</p>
+            <p className="text-2xl font-bold text-[#e5e5e5]">{totalActivity}</p>
+            <p className="text-xs text-[#696969] mt-1">
               Current Streak: {activeStreak} {activeStreak === 1 ? 'day' : 'days'}
             </p>
           </div>
@@ -301,7 +301,7 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
               {months.map((month, idx) => (
                 <div
                   key={idx}
-                  className="text-xs text-gray-400 font-medium"
+                  className="text-xs text-[#a0a0a0] font-medium"
                   style={{ 
                     marginLeft: idx === 0 ? 0 : `${(month.weekIndex - (months[idx - 1]?.weekIndex || 0)) * 14}px`,
                     minWidth: '40px'
@@ -315,7 +315,7 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
             {/* Day Labels + Grid */}
             <div className="flex gap-1">
               {/* Day of week labels */}
-              <div className="flex flex-col gap-1 text-xs text-gray-400 pr-2">
+              <div className="flex flex-col gap-1 text-xs text-[#a0a0a0] pr-2">
                 <div className="h-3"></div>
                 <div className="h-3">Mon</div>
                 <div className="h-3"></div>
@@ -345,12 +345,12 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
             </div>
 
             {/* Legend */}
-            <div className="flex items-center gap-2 mt-4 text-xs text-gray-400">
+            <div className="flex items-center gap-2 mt-4 text-xs text-[#a0a0a0]">
               <span>Less</span>
-              <div className="w-3 h-3 rounded-sm bg-slate-800/30"></div>
-              <div className="w-3 h-3 rounded-sm bg-green-900/50"></div>
-              <div className="w-3 h-3 rounded-sm bg-green-700/70"></div>
-              <div className="w-3 h-3 rounded-sm bg-green-500"></div>
+              <div className="w-3 h-3 rounded-sm bg-[#2a2a2a]"></div>
+              <div className="w-3 h-3 rounded-sm bg-[#5a8a6a]/40"></div>
+              <div className="w-3 h-3 rounded-sm bg-[#5a8a6a]/60"></div>
+              <div className="w-3 h-3 rounded-sm bg-[#7aaa8a]"></div>
               <span>More</span>
             </div>
           </div>
@@ -359,24 +359,24 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
 
       {/* Day Detail Modal */}
       {selectedDay && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedDay(null)}>
-          <div className="bg-slate-900/95 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60  flex items-center justify-center z-50 p-4" onClick={() => setSelectedDay(null)}>
+          <div className="bg-[#000000]  rounded-lg p-6 border border-[#333333] shadow-lg max-w-md w-full" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-xl font-bold text-white">{new Date(selectedDay.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>
-                <p className="text-sm text-gray-400 mt-1">
+                <h3 className="text-xl font-bold text-[#e5e5e5]">{new Date(selectedDay.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>
+                <p className="text-sm text-[#a0a0a0] mt-1">
                   {selectedDay.count} game{selectedDay.count !== 1 ? 's' : ''} • {selectedDay.hours}h total
                 </p>
               </div>
-              <button onClick={() => setSelectedDay(null)} className="text-gray-400 hover:text-white text-2xl">×</button>
+              <button onClick={() => setSelectedDay(null)} className="text-[#a0a0a0] hover:text-[#e5e5e5] text-2xl">×</button>
             </div>
 
             <div className="space-y-3">
               {selectedDay.games.map((game, idx) => (
-                <div key={idx} className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700/50">
+                <div key={idx} className="bg-[#1a1a1a]  rounded-lg p-4 border border-[#333333]">
                   <div className="flex items-center justify-between">
-                    <p className="text-white font-medium">{game.name}</p>
-                    <p className="text-green-400 font-semibold">{game.hours}h</p>
+                    <p className="text-[#e5e5e5] font-medium">{game.name}</p>
+                    <p className="text-[#7aaa8a] font-semibold">{game.hours}h</p>
                   </div>
                 </div>
               ))}
@@ -388,8 +388,8 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Gaming Profile Radar */}
-        <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl">
-          <h3 className="text-xl font-bold text-white mb-6">Gaming Profile</h3>
+        <div className="bg-[#000000]  rounded-lg p-6 border border-[#333333] shadow-lg">
+          <h3 className="text-xl font-bold text-[#e5e5e5] mb-6">Gaming Profile</h3>
           <ResponsiveContainer width="100%" height={300}>
             <RadarChart data={radarData}>
               <PolarGrid stroke="#475569" />
@@ -405,8 +405,8 @@ export const AnalyticsDashboardPage: React.FC<AnalyticsDashboardPageProps> = ({ 
         </div>
 
         {/* Platform Distribution */}
-        <div className="bg-slate-900/50 backdrop-blur-2xl rounded-2xl p-6 border border-slate-800/50 shadow-2xl">
-          <h3 className="text-xl font-bold text-white mb-6">Platform Distribution</h3>
+        <div className="bg-[#000000]  rounded-lg p-6 border border-[#333333] shadow-lg">
+          <h3 className="text-xl font-bold text-[#e5e5e5] mb-6">Platform Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie

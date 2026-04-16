@@ -36,14 +36,12 @@ const SyncRALibraryModal: React.FC<SyncRALibraryModalProps> = ({
       console.log('✅ Sync complete:', result);
       setSyncResult(result.summary);
       
-      // Only auto-close if games were found, otherwise let user see the result
       if (result.summary.added > 0 || result.summary.updated > 0) {
         setTimeout(() => {
           onSync();
           onClose();
         }, 2000);
       } else {
-        // No games found - just close after delay without refreshing
         setTimeout(() => {
           onClose();
         }, 3000);
@@ -68,21 +66,21 @@ const SyncRALibraryModal: React.FC<SyncRALibraryModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
       onClick={handleClose}
     >
       <div 
-        className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4"
+        className="bg-[#000000] rounded-lg p-6 max-w-md w-full mx-4 border border-[#333333]"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-2xl font-bold mb-4 text-white">
+        <h2 className="text-2xl font-bold mb-4 text-[#e5e5e5]">
           Sync RetroAchievements Library
         </h2>
 
         {!syncResult ? (
           <>
             <div className="mb-4">
-              <label className="block text-gray-300 mb-2">
+              <label className="block text-[#a0a0a0] mb-2">
                 RetroAchievements Username
               </label>
               <input
@@ -90,16 +88,16 @@ const SyncRALibraryModal: React.FC<SyncRALibraryModalProps> = ({
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your RA username"
-                className="w-full px-3 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-[#1a1a1a] text-[#e5e5e5] rounded border border-[#333333] focus:border-[#5a7fa3] focus:outline-none"
                 disabled={isLoading}
               />
-              <p className="text-sm text-gray-400 mt-2">
+              <p className="text-sm text-[#696969] mt-2">
                 Make sure your API key is set in backend .env file
               </p>
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-900 bg-opacity-50 border border-red-500 rounded text-red-200">
+              <div className="mb-4 p-3 bg-[#4a3a3a] border border-[#5a4a4a] rounded text-[#a0a0a0]">
                 {error}
               </div>
             )}
@@ -110,9 +108,9 @@ const SyncRALibraryModal: React.FC<SyncRALibraryModalProps> = ({
                 disabled={isLoading}
                 className={`flex-1 py-2 px-4 rounded font-semibold ${
                   isLoading
-                    ? 'bg-gray-600 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700'
-                } text-white transition-colors`}
+                    ? 'bg-[#333333] cursor-not-allowed text-[#696969]'
+                    : 'bg-[#5a7fa3] hover:bg-[#7a9fc3] text-[#e5e5e5]'
+                } transition-colors`}
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -141,7 +139,7 @@ const SyncRALibraryModal: React.FC<SyncRALibraryModalProps> = ({
               <button
                 onClick={handleClose}
                 disabled={isLoading}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded font-semibold transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-[#1a1a1a] hover:bg-[#333333] text-[#a0a0a0] rounded font-semibold transition-colors disabled:opacity-50 border border-[#333333]"
               >
                 Cancel
               </button>
@@ -149,22 +147,22 @@ const SyncRALibraryModal: React.FC<SyncRALibraryModalProps> = ({
           </>
         ) : (
           <>
-            <div className="mb-4 p-4 bg-green-900 bg-opacity-50 border border-green-500 rounded">
-              <h3 className="text-green-200 font-semibold mb-2">
+            <div className="mb-4 p-4 bg-[#3a4a3a] border border-[#5a7fa3] rounded">
+              <h3 className="text-[#7a9fc3] font-semibold mb-2">
                 ✅ Sync Successful!
               </h3>
-              <div className="text-sm text-gray-300 space-y-1">
+              <div className="text-sm text-[#a0a0a0] space-y-1">
                 <p>Total Games Found: {syncResult.totalGames || 0}</p>
                 <p>Added: {syncResult.added || 0}</p>
                 <p>Updated: {syncResult.updated || 0}</p>
                 <p>Skipped: {syncResult.skipped || 0}</p>
-                <p className="mt-2 pt-2 border-t border-green-700">
+                <p className="mt-2 pt-2 border-t border-[#5a5a5a]">
                   Total Points: {syncResult.totalPoints?.toLocaleString() || 0}
                 </p>
                 <p>Weighted Points: {syncResult.totalTruePoints?.toLocaleString() || 0}</p>
               </div>
             </div>
-            <p className="text-center text-gray-400 text-sm">
+            <p className="text-center text-[#696969] text-sm">
               Refreshing library...
             </p>
           </>

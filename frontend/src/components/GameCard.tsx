@@ -15,7 +15,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
       return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.platformGameId}/library_600x900.jpg`;
     }
     
-    return 'https://via.placeholder.com/300x400/1a1a1a/666?text=No+Image';
+    return 'https://via.placeholder.com/300x400/2a2a2a/5a5a5a?text=No+Image';
   };
 
   const is100Percent = () => {
@@ -37,17 +37,17 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
 
   return (
     <div onClick={onClick} className="group relative cursor-pointer">
-      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-slate-900/50 border border-slate-800/50 shadow-md transition-all duration-500 hover:border-blue-500/40">
+      <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-[#1a1a1a] border border-[#333333] transition-all duration-300 hover:border-[#5a7fa3]">
         <img
           src={getGameImage(game)}
           alt={game.name}
-          className="w-full h-full object-cover transition-transform duration-700"
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           onError={(e) => {
-            e.currentTarget.src = 'https://via.placeholder.com/300x400/1a1a1a/666?text=No+Image';
+            e.currentTarget.src = 'https://via.placeholder.com/300x400/2a2a2a/5a5a5a?text=No+Image';
           }}
         />
         
-        <div className="absolute inset-0 bg-black/40 opacity-70 group-hover:opacity-90 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-black/50 opacity-60 group-hover:opacity-40 transition-opacity duration-300" />
 
         {/* Platform Badge */}
         <div className="absolute top-3 left-3">
@@ -56,21 +56,21 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
 
         {/* 100% Achievement Badge */}
         {is100Percent() && (
-          <div className="absolute top-3 right-3 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-xl px-2 py-1 flex items-center gap-1 shadow-lg">
-            <span className="text-white text-base">🏆</span>
-            <span className="text-white text-[10px] font-bold">100%</span>
+          <div className="absolute top-3 right-3 bg-[#5a7fa3] rounded px-2 py-1 flex items-center gap-1">
+            <span className="text-[#e5e5e5] text-sm">🏆</span>
+            <span className="text-[#e5e5e5] text-xs font-semibold">100%</span>
           </div>
         )}
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
-          <h3 className="text-sm font-bold text-white line-clamp-2 drop-shadow-2xl mb-2">
+        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+          <h3 className="text-sm font-semibold text-[#e5e5e5] line-clamp-2 mb-2">
             {game.name}
           </h3>
           
           {/* Console badge for RA games */}
           {consoleDisplay && (
             <div className="mb-2">
-              <span className="text-xs px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 font-medium">
+              <span className="text-xs px-2 py-1 bg-[#2a2a2a] border border-[#5a7fa3] rounded text-[#7a9fc3] font-medium">
                 {consoleDisplay}
               </span>
             </div>
@@ -78,9 +78,9 @@ export const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
           
           {/* Achievement Progress Bar */}
           {game.achievementsTotal && game.achievementsTotal > 0 && (
-            <div className="relative h-2 bg-slate-800/50 rounded-full overflow-hidden">
+            <div className="relative h-1.5 bg-[#333333] rounded-full overflow-hidden">
               <div
-                className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-500"
+                className="absolute inset-0 bg-[#5a7fa3] rounded-full transition-all duration-300"
                 style={{ width: `${getAchievementPercentage()}%` }}
               />
             </div>

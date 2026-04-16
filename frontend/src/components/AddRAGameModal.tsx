@@ -40,7 +40,6 @@ const AddRAGameModal: React.FC<AddRAGameModalProps> = ({
       
       console.log('Game added successfully');
       
-      // Refresh library and close
       onAdd();
       handleClose();
       
@@ -63,36 +62,36 @@ const AddRAGameModal: React.FC<AddRAGameModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
       onClick={handleClose}
     >
       <div 
-        className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4"
+        className="bg-[#000000] rounded-lg p-6 max-w-md w-full mx-4 border border-[#333333]"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-2xl font-bold mb-4 text-white">
+        <h2 className="text-2xl font-bold mb-4 text-[#e5e5e5]">
           Add RetroAchievements Game
         </h2>
 
         <div className="mb-4">
-          <label className="block text-gray-300 mb-2">
-            Game ID <span className="text-red-400">*</span>
+          <label className="block text-[#a0a0a0] mb-2">
+            Game ID <span className="text-[#a0a0a0]">*</span>
           </label>
           <input
             type="text"
             value={gameId}
             onChange={(e) => setGameId(e.target.value)}
             placeholder="e.g., 11240 for God of War"
-            className="w-full px-3 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 bg-[#1a1a1a] text-[#e5e5e5] rounded border border-[#333333] focus:border-[#5a7fa3] focus:outline-none"
             disabled={isLoading}
           />
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-[#696969] mt-1">
             Find game IDs at{' '}
             <a
               href="https://retroachievements.org/gameList.php"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-400 hover:underline"
+              className="text-[#5a7fa3] hover:text-[#7a9fc3]"
             >
               retroachievements.org
             </a>
@@ -100,7 +99,7 @@ const AddRAGameModal: React.FC<AddRAGameModalProps> = ({
         </div>
 
         <div className="mb-4">
-          <label className="block text-gray-300 mb-2">
+          <label className="block text-[#a0a0a0] mb-2">
             Your RA Username (optional)
           </label>
           <input
@@ -108,16 +107,16 @@ const AddRAGameModal: React.FC<AddRAGameModalProps> = ({
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="To sync your progress"
-            className="w-full px-3 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-2 bg-[#1a1a1a] text-[#e5e5e5] rounded border border-[#333333] focus:border-[#5a7fa3] focus:outline-none"
             disabled={isLoading}
           />
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-[#696969] mt-1">
             Leave blank to add game with 0% completion
           </p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-900 bg-opacity-50 border border-red-500 rounded text-red-200">
+          <div className="mb-4 p-3 bg-[#4a3a3a] border border-[#5a4a4a] rounded text-[#a0a0a0]">
             {error}
           </div>
         )}
@@ -128,16 +127,16 @@ const AddRAGameModal: React.FC<AddRAGameModalProps> = ({
             disabled={isLoading}
             className={`flex-1 py-2 px-4 rounded font-semibold ${
               isLoading
-                ? 'bg-gray-600 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700'
-            } text-white transition-colors`}
+                ? 'bg-[#333333] cursor-not-allowed text-[#696969]'
+                : 'bg-[#5a7fa3] hover:bg-[#7a9fc3] text-[#e5e5e5]'
+            } transition-colors`}
           >
             {isLoading ? 'Adding...' : 'Add Game'}
           </button>
           <button
             onClick={handleClose}
             disabled={isLoading}
-            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded font-semibold transition-colors disabled:opacity-50"
+            className="px-4 py-2 bg-[#1a1a1a] hover:bg-[#333333] text-[#a0a0a0] rounded font-semibold transition-colors disabled:opacity-50 border border-[#333333]"
           >
             Cancel
           </button>

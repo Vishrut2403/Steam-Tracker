@@ -66,10 +66,9 @@ function App() {
 
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
         <div className="relative">
-          <div className="w-20 h-20 border-4 border-slate-800/50 border-t-blue-500 rounded-full animate-spin" />
-          <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-cyan-500 rounded-full animate-spin" style={{ animationDelay: '150ms' }} />
+          <div className="w-16 h-16 border-3 border-[#333333] border-t-[#5a7fa3] rounded-full animate-spin" />
         </div>
       </div>
     );

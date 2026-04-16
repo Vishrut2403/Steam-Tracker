@@ -19,7 +19,6 @@ function AuthPage() {
     e.preventDefault();
     setError('');
 
-    // Validation
     if (!isLogin && formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -53,119 +52,72 @@ function AuthPage() {
 
       const data = await response.json();
 
-      if (!data.success) {
+      if (!response.ok) {
         setError(data.error || 'Authentication failed');
-        setLoading(false);
         return;
       }
 
-      // Store token
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-
-      // Redirect to home
       navigate('/');
-      window.location.reload(); // Reload to trigger auth check
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError('An error occurred. Please try again.');
+      console.error(err);
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-gray-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#000000] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo/Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Game Vault</h1>
-          <p className="text-gray-400">Track your gaming journey across all platforms</p>
-        </div>
+        <div className="bg-[#1a1a1a] rounded-lg border border-[#333333] p-8 shadow-lg">
+          <h1 className="text-3xl font-bold text-[#e5e5e5] mb-2 text-center">Game Vault</h1>
+          <p className="text-center text-[#a0a0a0] mb-8">
+            {isLogin ? 'Sign in to your account' : 'Create a new account'}
+          </p>
 
-        {/* Auth Card */}
-        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 shadow-2xl">
-          {/* Toggle Login/Register */}
-          <div className="flex gap-2 p-1 bg-slate-800/50 rounded-xl mb-6">
-            <button
-              onClick={() => {
-                setIsLogin(true);
-                setError('');
-              }}
-              className={`flex-1 py-2.5 rounded-lg font-semibold transition-all ${
-                isLogin
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Login
-            </button>
-            <button
-              onClick={() => {
-                setIsLogin(false);
-                setError('');
-              }}
-              className={`flex-1 py-2.5 rounded-lg font-semibold transition-all ${
-                !isLogin
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Register
-            </button>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-300 text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Email
-                </label>
+                <label className="block text-sm font-medium text-[#a0a0a0] mb-2">Email</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-                  placeholder="your@email.com"
+                  className="w-full px-4 py-2 bg-[#2a2a2a] border border-[#333333] rounded text-[#e5e5e5] placeholder-[#696969] focus:border-[#5a7fa3] focus:outline-none"
+                  placeholder="you@example.com"
                   required={!isLogin}
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-[#a0a0a0] mb-2">
                 {isLogin ? 'Email or Username' : 'Username'}
               </label>
               <input
                 type="text"
-                value={isLogin ? formData.email || formData.username : formData.username}
+                value={isLogin ? formData.email : formData.username}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
                     [isLogin ? 'email' : 'username']: e.target.value
                   })
                 }
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-                placeholder={isLogin ? 'email or username' : 'username'}
+                className="w-full px-4 py-2 bg-[#2a2a2a] border border-[#333333] rounded text-[#e5e5e5] placeholder-[#696969] focus:border-[#5a7fa3] focus:outline-none"
+                placeholder={isLogin ? 'Email or username' : 'vishydaperry'}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Password
-              </label>
+              <label className="block text-sm font-medium text-[#a0a0a0] mb-2">Password</label>
               <input
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                className="w-full px-4 py-2 bg-[#2a2a2a] border border-[#333333] rounded text-[#e5e5e5] placeholder-[#696969] focus:border-[#5a7fa3] focus:outline-none"
                 placeholder="••••••••"
                 required
               />
@@ -173,51 +125,49 @@ function AuthPage() {
 
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Confirm Password
-                </label>
+                <label className="block text-sm font-medium text-[#a0a0a0] mb-2">Confirm Password</label>
                 <input
                   type="password"
                   value={formData.confirmPassword}
-                  onChange={(e) =>
-                    setFormData({ ...formData, confirmPassword: e.target.value })
-                  }
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className="w-full px-4 py-2 bg-[#2a2a2a] border border-[#333333] rounded text-[#e5e5e5] placeholder-[#696969] focus:border-[#5a7fa3] focus:outline-none"
                   placeholder="••••••••"
                   required={!isLogin}
                 />
               </div>
             )}
 
+            {error && (
+              <div className="p-3 bg-[#4a3a3a] border border-[#5a4a4a] rounded text-[#a0a0a0] text-sm">
+                {error}
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:text-gray-500 text-white font-semibold rounded-lg transition-all shadow-lg"
+              className="w-full py-3 bg-[#5a7fa3] text-[#e5e5e5] rounded font-semibold hover:bg-[#7a9fc3] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Please wait...' : isLogin ? 'Login' : 'Create Account'}
+              {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Create Account'}
             </button>
           </form>
 
-          {/* Footer */}
-          <div className="mt-6 text-center text-sm text-gray-400">
-            {isLogin ? "Don't have an account? " : 'Already have an account? '}
-            <button
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setError('');
-              }}
-              className="text-blue-400 hover:text-blue-300 font-semibold"
-            >
-              {isLogin ? 'Register' : 'Login'}
-            </button>
+          <div className="mt-6 text-center">
+            <p className="text-[#a0a0a0] text-sm">
+              {isLogin ? "Don't have an account?" : 'Already have an account?'}
+              <button
+                onClick={() => setIsLogin(!isLogin)}
+                className="ml-2 text-[#5a7fa3] hover:text-[#7a9fc3] font-semibold transition-colors"
+              >
+                {isLogin ? 'Sign Up' : 'Sign In'}
+              </button>
+            </p>
           </div>
         </div>
 
-        {/* Info */}
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>🎮 Track Steam, RetroAchievements, and Emulators</p>
-          <p>📊 View stats, journal entries, and achievements</p>
-        </div>
+        <p className="text-center text-[#696969] text-xs mt-6">
+          GameVault © 2026 • Minimalist Edition
+        </p>
       </div>
     </div>
   );

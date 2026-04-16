@@ -101,9 +101,9 @@ export default function ProfilePage({ user, onUpdate }: ProfilePageProps) {
   return (
     <div className="max-w-4xl mx-auto">
       {/* User Info Card */}
-      <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 mb-8">
+      <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-8 mb-8">
         <div className="flex items-center gap-6">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-4xl font-bold text-white">
+          <div className="w-24 h-24 rounded-full bg-[#5a7fa3] flex items-center justify-center text-4xl font-bold text-[#e5e5e5]">
             {user.username.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1">
@@ -114,9 +114,9 @@ export default function ProfilePage({ user, onUpdate }: ProfilePageProps) {
                 <span className="text-sm font-semibold text-gray-300">Level {user.level}</span>
                 <span className="text-sm text-gray-500">{user.xp} XP</span>
               </div>
-              <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
+              <div className="w-full h-3 bg-[#2a2a2a] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-500"
+                  className="h-full bg-[#5a7fa3] rounded-full transition-all duration-500"
                   style={{ width: `${(user.xp % 1000) / 10}%` }}
                 />
               </div>
@@ -127,7 +127,7 @@ export default function ProfilePage({ user, onUpdate }: ProfilePageProps) {
       </div>
 
       {/* Platform Connections */}
-      <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl p-8">
+      <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-8">
         <h3 className="text-2xl font-bold text-white mb-2">Account Links</h3>
         <p className="text-gray-400 mb-6">
           Connect your gaming platforms to automatically sync your library and track progress.
@@ -135,17 +135,17 @@ export default function ProfilePage({ user, onUpdate }: ProfilePageProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Steam */}
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+          <div className="bg-[#2a2a2a] border border-[#333333] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center">
-                  <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <div className="w-12 h-12 bg-[#5a7fa3] rounded-lg flex items-center justify-center">
+                  <svg className="w-8 h-8 text-[#e5e5e5]" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2a10 10 0 0 0-10 10 10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2M6.5 14.8l1.4.6c.2-.4.6-.8 1.1-.9l2.1-3c0-1.3 1.1-2.4 2.4-2.4 1.3 0 2.4 1.1 2.4 2.4 0 1.3-1.1 2.4-2.4 2.4h-.1l-2.9 2.1c-.2.9-1 1.6-2 1.6-.8 0-1.5-.5-1.8-1.2l-1.4-.6c.3 2.3 2.2 4 4.5 4 2.5 0 4.5-2 4.5-4.5S14.5 11 12 11c-.3 0-.6 0-.8.1l.7 1.6h.1c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5c-.7 0-1.3-.5-1.5-1.2l-1.6-.7c-.4.5-.9.8-1.5.8-.6 0-1.1-.3-1.4-.7z"/>
                   </svg>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-white">Steam</h4>
-                  <p className="text-sm text-gray-400">{user.steamUsername || '-'}</p>
+                  <h4 className="font-semibold text-[#e5e5e5]">Steam</h4>
+                  <p className="text-sm text-[#a0a0a0]">{user.steamUsername || '-'}</p>
                 </div>
               </div>
             </div>
@@ -162,7 +162,7 @@ export default function ProfilePage({ user, onUpdate }: ProfilePageProps) {
                   Last updated: {user.steamLinkedAt ? new Date(user.steamLinkedAt).toLocaleDateString() : 'Never'}
                 </p>
                 <button type="button" onClick={handleDisconnectSteam}
-                  className="w-full px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/20 transition-all text-sm font-medium">
+                  className="w-full px-4 py-2 bg-[#8b3a3a] border border-[#a84a4a] text-[#ff9999] rounded-lg hover:bg-[#9b4a4a] transition-all text-sm font-medium">
                   Disconnect
                 </button>
               </>
@@ -176,7 +176,7 @@ export default function ProfilePage({ user, onUpdate }: ProfilePageProps) {
                 </div>
                 <p className="text-xs text-gray-500 mb-4">Connect to sync your Steam library automatically</p>
                 <button type="button" onClick={handleConnectSteam}
-                  className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all text-sm font-medium">
+                  className="w-full px-4 py-2 bg-[#5a7fa3] hover:bg-[#7a9fc3] text-[#e5e5e5] rounded-lg transition-all text-sm font-medium">
                   Connect Steam
                 </button>
               </>
@@ -184,15 +184,15 @@ export default function ProfilePage({ user, onUpdate }: ProfilePageProps) {
           </div>
 
           {/* RetroAchievements */}
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+          <div className="bg-[#2a2a2a] border border-[#333333] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-[#5a7fa3] rounded-lg flex items-center justify-center">
                   <span className="text-2xl">🏆</span>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-white">RetroAchievements</h4>
-                  <p className="text-sm text-gray-400">{user.raUsername || '-'}</p>
+                  <h4 className="font-semibold text-[#e5e5e5]">RetroAchievements</h4>
+                  <p className="text-sm text-[#a0a0a0]">{user.raUsername || '-'}</p>
                 </div>
               </div>
             </div>
@@ -206,7 +206,7 @@ export default function ProfilePage({ user, onUpdate }: ProfilePageProps) {
                   <span className="text-sm text-green-400 font-medium">Linked</span>
                 </div>
                 <button type="button" onClick={handleDisconnectRA}
-                  className="w-full px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/20 transition-all text-sm font-medium">
+                  className="w-full px-4 py-2 bg-[#8b3a3a] border border-[#a84a4a] text-[#ff9999] rounded-lg hover:bg-[#9b4a4a] transition-all text-sm font-medium">
                   Disconnect
                 </button>
               </>
@@ -220,12 +220,12 @@ export default function ProfilePage({ user, onUpdate }: ProfilePageProps) {
                 </div>
                 <div className="space-y-3 mb-4">
                   <input type="text" placeholder="Username" value={raUsername} onChange={(e) => setRaUsername(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500" />
+                    className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333333] rounded-lg text-[#e5e5e5] text-sm placeholder-[#696969] focus:outline-none focus:border-[#5a7fa3]" />
                   <input type="password" placeholder="API Key" value={raApiKey} onChange={(e) => setRaApiKey(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500" />
+                    className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#333333] rounded-lg text-[#e5e5e5] text-sm placeholder-[#696969] focus:outline-none focus:border-[#5a7fa3]" />
                 </div>
                 <button type="button" onClick={handleSaveRA} disabled={saving || !raUsername || !raApiKey}
-                  className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:text-gray-500 text-white rounded-lg transition-all text-sm font-medium">
+                  className="w-full px-4 py-2 bg-[#5a7fa3] hover:bg-[#7a9fc3] disabled:bg-[#2a2a2a] disabled:text-[#696969] text-[#e5e5e5] rounded-lg transition-all text-sm font-medium">
                   {saving ? 'Connecting...' : 'Connect'}
                 </button>
               </>
@@ -233,71 +233,71 @@ export default function ProfilePage({ user, onUpdate }: ProfilePageProps) {
           </div>
 
           {/* PCSX2 */}
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+          <div className="bg-[#2a2a2a] border border-[#333333] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center"><span className="text-xl">🎮</span></div>
+                <div className="w-12 h-12 bg-[#5a7fa3] rounded-lg flex items-center justify-center"><span className="text-2xl">🏆</span></div>
                 <div><h4 className="font-semibold text-white">PCSX2 (PS2)</h4><p className="text-sm text-gray-400">Local tracking</p></div>
               </div>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-400">Enable tracking</span>
               <button type="button" onClick={() => toggleEmulator('PCSX2')}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enablePCSX2 ? 'bg-blue-600' : 'bg-slate-700'}`}>
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enablePCSX2 ? 'bg-[#5a7fa3]' : 'bg-[#2a2a2a]'}`}>
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${enablePCSX2 ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
           </div>
 
           {/* RPCS3 */}
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+          <div className="bg-[#2a2a2a] border border-[#333333] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center"><span className="text-xl">🎮</span></div>
-                <div><h4 className="font-semibold text-white">RPCS3 (PS3)</h4><p className="text-sm text-gray-400">Local tracking</p></div>
+                <div className="w-12 h-12 bg-[#5a7fa3] rounded-lg flex items-center justify-center"><span className="text-xl">🎮</span></div>
+                <div><h4 className="font-semibold text-[#e5e5e5]">RPCS3 (PS3)</h4><p className="text-sm text-[#a0a0a0]">Local tracking</p></div>
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">Enable tracking</span>
+              <span className="text-sm text-[#a0a0a0]">Enable tracking</span>
               <button type="button" onClick={() => toggleEmulator('RPCS3')}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enableRPCS3 ? 'bg-blue-600' : 'bg-slate-700'}`}>
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enableRPCS3 ? 'bg-[#5a7fa3]' : 'bg-[#2a2a2a]'}`}>
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${enableRPCS3 ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
           </div>
 
           {/* PPSSPP */}
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+          <div className="bg-[#2a2a2a] border border-[#333333] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center"><span className="text-xl">🎮</span></div>
-                <div><h4 className="font-semibold text-white">PPSSPP (PSP)</h4><p className="text-sm text-gray-400">Local tracking</p></div>
+                <div className="w-12 h-12 bg-[#5a7fa3] rounded-lg flex items-center justify-center"><span className="text-xl">🎮</span></div>
+                <div><h4 className="font-semibold text-[#e5e5e5]">PPSSPP (PSP)</h4><p className="text-sm text-[#a0a0a0]">Local tracking</p></div>
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">Enable tracking</span>
+              <span className="text-sm text-[#a0a0a0]">Enable tracking</span>
               <button type="button" onClick={() => toggleEmulator('PPSSPP')}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enablePPSSPP ? 'bg-blue-600' : 'bg-slate-700'}`}>
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enablePPSSPP ? 'bg-[#5a7fa3]' : 'bg-[#2a2a2a]'}`}>
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${enablePPSSPP ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
           </div>
 
           {/* RetroArch */}
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+          <div className="bg-[#2a2a2a] border border-[#333333] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-slate-700 rounded-lg flex items-center justify-center"><span className="text-xl">🕹️</span></div>
-                <div><h4 className="font-semibold text-white">RetroArch</h4><p className="text-sm text-gray-400">Multi-system emulator</p></div>
+                <div className="w-12 h-12 bg-[#5a7fa3] rounded-lg flex items-center justify-center"><span className="text-xl">🕹️</span></div>
+                <div><h4 className="font-semibold text-[#e5e5e5]">RetroArch</h4><p className="text-sm text-[#a0a0a0]">Multi-system emulator</p></div>
               </div>
             </div>
-            <p className="text-xs text-gray-500 mb-4">
-              Reads from <code className="text-gray-400">~/.config/retroarch/playlists/</code>. Supports GBA, SNES, NES, N64, PS1, Sega and more.
+            <p className="text-xs text-[#696969] mb-4">
+              Reads from <code className="text-[#a0a0a0]">~/.config/retroarch/playlists/</code>. Supports GBA, SNES, NES, N64, PS1, Sega and more.
             </p>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-400">Enable tracking</span>
               <button type="button" onClick={() => toggleEmulator('RetroArch')}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enableRetroArch ? 'bg-blue-600' : 'bg-slate-700'}`}>
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enableRetroArch ? 'bg-[#5a7fa3]' : 'bg-[#2a2a2a]'}`}>
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${enableRetroArch ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>

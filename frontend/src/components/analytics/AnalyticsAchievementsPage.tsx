@@ -59,8 +59,8 @@ export const AnalyticsAchievementsPage: React.FC<AnalyticsAchievementsPageProps>
   return (
     <div className="space-y-8">
       {/* Achievement Progress Rings */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-        <h3 className="text-xl font-bold text-white mb-6">Achievement Progress</h3>
+      <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-6">
+        <h3 className="text-xl font-bold text-[#e5e5e5] mb-6">Achievement Progress</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {topProgress.map((game, idx) => {
             const circumference = 2 * Math.PI * 45;
@@ -94,15 +94,15 @@ export const AnalyticsAchievementsPage: React.FC<AnalyticsAchievementsPageProps>
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-bold text-white">{game.progress}%</span>
+                    <span className="text-2xl font-bold text-[#e5e5e5]">{game.progress}%</span>
                     {game.progress === 100 && <span className="text-lg">🏆</span>}
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="font-semibold text-white text-sm mb-1 line-clamp-2">
+                  <div className="font-semibold text-[#e5e5e5] text-sm mb-1 line-clamp-2">
                     {game.name}
                   </div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-[#a0a0a0]">
                     {game.achievementsEarned}/{game.achievementsTotal}
                   </div>
                 </div>
@@ -114,15 +114,15 @@ export const AnalyticsAchievementsPage: React.FC<AnalyticsAchievementsPageProps>
       
       {/* Perfect Games */}
       {perfectGames.length > 0 && (
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-          <h3 className="text-xl font-bold text-white mb-4">
+        <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-6">
+          <h3 className="text-xl font-bold text-[#e5e5e5] mb-4">
             Perfect Games 🏆 ({perfectGames.length})
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
             {perfectGames.map((game, idx) => (
               <div 
                 key={idx} 
-                className="bg-slate-700/30 rounded-xl overflow-hidden border border-slate-600/30 hover:border-green-500/50 transition-all group"
+                className="bg-[#2a2a2a] rounded-lg overflow-hidden border border-[#333333] hover:border-[#5a8a6a] transition-all group"
               >
                 {game.imageUrl && (
                   <div className="aspect-[460/215] overflow-hidden">
@@ -134,16 +134,16 @@ export const AnalyticsAchievementsPage: React.FC<AnalyticsAchievementsPageProps>
                   </div>
                 )}
                 <div className="p-3">
-                  <div className="font-semibold text-white text-sm mb-1 line-clamp-2">
+                  <div className="font-semibold text-[#e5e5e5] text-sm mb-1 line-clamp-2">
                     {game.name}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-[#a0a0a0]">
                       {game.achievementsTotal} achievements
                     </span>
                     <PlatformBadge platform={game.platform} showLabel={false} />
                   </div>
-                  <div className="mt-2 flex items-center gap-1 text-xs text-green-400">
+                  <div className="mt-2 flex items-center gap-1 text-xs text-[#7aaa8a]">
                     <span>✓</span>
                     <span>100%</span>
                   </div>
@@ -155,8 +155,8 @@ export const AnalyticsAchievementsPage: React.FC<AnalyticsAchievementsPageProps>
       )}
       
       {/* Achievement Distribution */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-        <h3 className="text-xl font-bold text-white mb-4">Achievement Distribution</h3>
+      <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-6">
+        <h3 className="text-xl font-bold text-[#e5e5e5] mb-4">Achievement Distribution</h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={achievementDistribution}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -177,28 +177,28 @@ export const AnalyticsAchievementsPage: React.FC<AnalyticsAchievementsPageProps>
       
       {/* Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
+        <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-6">
           <div className="text-3xl mb-2">🎯</div>
-          <div className="text-2xl font-bold text-white mb-1">
+          <div className="text-2xl font-bold text-[#e5e5e5] mb-1">
             {games.filter(g => (g.achievementsTotal || 0) > 0).length}
           </div>
-          <div className="text-sm text-gray-400">Games with Achievements</div>
+          <div className="text-sm text-[#a0a0a0]">Games with Achievements</div>
         </div>
         
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
+        <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-6">
           <div className="text-3xl mb-2">⚡</div>
-          <div className="text-2xl font-bold text-white mb-1">
+          <div className="text-2xl font-bold text-[#e5e5e5] mb-1">
             {games.filter(g => (g.achievementsEarned || 0) > 0).length}
           </div>
-          <div className="text-sm text-gray-400">Games Started</div>
+          <div className="text-sm text-[#a0a0a0]">Games Started</div>
         </div>
         
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
+        <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-6">
           <div className="text-3xl mb-2">💯</div>
-          <div className="text-2xl font-bold text-white mb-1">
+          <div className="text-2xl font-bold text-[#e5e5e5] mb-1">
             {perfectGames.length}
           </div>
-          <div className="text-sm text-gray-400">Perfect Games</div>
+          <div className="text-sm text-[#a0a0a0]">Perfect Games</div>
         </div>
       </div>
     </div>
