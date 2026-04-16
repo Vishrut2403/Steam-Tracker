@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import recommendationService from '../services/recommendation.service';
 import knapsackService from '../services/knapsack.service';
+import { SmartRecommendationService } from '../services/smartRecommendation.service';
 
 const router = Router();
 
@@ -87,6 +88,31 @@ router.post('/:userId/optimize', async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({
       error: 'Failed to optimize budget',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+router.get('/:userId/smart', async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId as string;
+    const limit = Math.min(parseInt(req.query.limit as string) || 5, 20); // Max 20 recommendations
+
+    if (!userId) {
+      res.status(400).json({ error: 'User ID required' });
+      return;
+    }
+
+    const recommendations = await SmartRecommendationService.getSmartRecommendations(userId, limit);
+
+    res.json({
+      success: true,
+      count: recommendations.length,
+      recommendations,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to generate smart recommendations',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
   }

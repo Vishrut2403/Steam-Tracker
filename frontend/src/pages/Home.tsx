@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import steamService from '../services/steam.service';
 import SteamWishlist from '../components/SteamWishlist';
 import RecommendationSystem from '../components/RecommendationSystem';
+import SmartRecommendationsList from '../components/SmartRecommendationsList';
 import { AddGameMenu } from '../components/AddGameMenu';
 import { PlatformBadge } from '../components/PlatformBadge';
 import SyncRALibraryModal from '../components/SyncRALibraryModal';
@@ -294,6 +295,7 @@ function Home({ user, onLogout }: HomeProps) {
             { key: 'dashboard', label: 'Dashboard' },
             { key: 'wishlist', label: 'Wishlist' },
             { key: 'recommendations', label: 'Recommendations' },
+            { key: 'smart-recommendations', label: 'Smart Pick' },
             { key: 'analytics', label: 'Analytics' },
             { key: 'tierlist', label: 'Tier List' },
           ].map(({ key, label }) => (
@@ -538,6 +540,13 @@ function Home({ user, onLogout }: HomeProps) {
           <RecommendationSystem userId={user.id} />
         )}
 
+        {activeTab === 'smart-recommendations' && (
+          <SmartRecommendationsList userId={user.id} limit={10} onSelectGame={(gameId) => {
+            const game = library?.games?.find((g: LibraryGame) => g.id === gameId);
+            setSelectedGame(game || null);
+          }} />
+        )}
+
         {activeTab === 'analytics' && !loading && (
           <Analytics games={library?.games || []} />
         )}
@@ -547,7 +556,7 @@ function Home({ user, onLogout }: HomeProps) {
         )}
 
         {/* Empty State */}
-        {filteredGames.length === 0 && !loading && activeTab !== 'profile' && activeTab !== 'wishlist' && activeTab !== 'recommendations' && activeTab !== 'analytics' && activeTab !== 'tierlist' && (
+        {filteredGames.length === 0 && !loading && activeTab !== 'profile' && activeTab !== 'wishlist' && activeTab !== 'recommendations' && activeTab !== 'smart-recommendations' && activeTab !== 'analytics' && activeTab !== 'tierlist' && (
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center mx-auto px-6">
               <div className="w-20 h-20 mx-auto mb-4 rounded-lg bg-[#1a1a1a] border border-[#333333] flex items-center justify-center shadow-md">

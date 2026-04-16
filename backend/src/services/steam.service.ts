@@ -4,10 +4,7 @@ import dotenv from 'dotenv';
 import prisma from '../prisma';
 
 const CACHE_TTL = 3600;
-const WISHLIST_TTL = 1800;
 const API_TIMEOUT = 3000;
-const WISHLIST_TIMEOUT = 15000;
-const REQUEST_DELAY_MS = 1200;
 
 dotenv.config();
 
@@ -45,14 +42,6 @@ interface StoreAppDetails {
       discount_percent: number;
     };
   };
-}
-
-interface WishlistGameData {
-  name: string;
-  currentPrice: number;
-  originalPrice: number;
-  discountPercent: number;
-  tags: string[];
 }
 
 interface AchievementData {
@@ -249,40 +238,6 @@ class SteamService {
     };
   }
 
-  async getUserWishlist(steamId: string): Promise<number[]> {
-    const cacheKey = `wishlist_${steamId}`;
-    const cached = cache.get<number[]>(cacheKey);
-
-    if (cached) {
-      return cached;
-    }
-
-    try {
-      const url = `https://store.steampowered.com/wishlist/profiles/${steamId}/wishlistdata/`;
-      const response = await axios.get(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0',
-          'Accept': 'application/json',
-        },
-        timeout: WISHLIST_TIMEOUT,
-      });
-
-      if (typeof response.data !== 'object' || response.data === null) {
-        return [];
-      }
-
-      const keys = Object.keys(response.data);
-      const appIds = keys
-        .map(Number)
-        .filter((id) => !isNaN(id) && id > 1000 && id < 9999999999);
-
-      cache.set(cacheKey, appIds, WISHLIST_TTL);
-      return appIds;
-    } catch (error) {
-      return [];
-    }
-  }
-
   private async getAppDetails(appId: number): Promise<StoreAppDetails> {
     const cacheKey = `appdetails_${appId}`;
     const cached = cache.get<StoreAppDetails>(cacheKey);
@@ -302,74 +257,6 @@ class SteamService {
       return result;
     } catch (error) {
       return { success: false };
-    }
-  }
-
-  async getEnrichedWishlist(steamId: string): Promise<WishlistGameData[]> {
-    const appIds = await this.getUserWishlist(steamId);
-
-    if (appIds.length === 0) {
-      return [];
-    }
-
-    const enriched: WishlistGameData[] = [];
-
-    for (const appId of appIds) {
-      const details = await this.getAppDetails(appId);
-
-      if (!details.success || !details.data) {
-        continue;
-      }
-
-      const game = details.data;
-      const originalPrice = game.price_overview ? game.price_overview.initial / 100 : 0;
-      const currentPrice = game.price_overview ? game.price_overview.final / 100 : 0;
-      const discountPercent = game.price_overview ? game.price_overview.discount_percent : 0;
-      const tags = game.genres ? game.genres.map((g) => g.description) : [];
-
-      enriched.push({
-        name: game.name,
-        currentPrice,
-        originalPrice,
-        discountPercent,
-        tags,
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, REQUEST_DELAY_MS));
-    }
-
-    return enriched;
-  }
-
-  async saveWishlist(steamId: string, games: WishlistGameData[]) {
-    const user = await this.findOrCreateUser(steamId);
-
-    for (const game of games) {
-      const appId = (game as any).appId || String(Math.random() * 1000000);
-      
-      await prisma.steamWishlist.upsert({
-        where: {
-          userId_appId: {
-            userId: user.id,
-            appId: appId,
-          },
-        },
-        update: {
-          currentPrice: game.currentPrice,
-          discountPercent: game.discountPercent,
-          tags: game.tags,
-          listPrice: game.originalPrice,
-        },
-        create: {
-          userId: user.id,
-          appId: appId,
-          name: game.name,
-          tags: game.tags ?? [],
-          listPrice: game.originalPrice ?? 0,
-          currentPrice: game.currentPrice ?? 0,
-          discountPercent: game.discountPercent ?? 0,
-        },
-      });
     }
   }
 

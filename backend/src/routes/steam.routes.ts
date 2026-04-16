@@ -476,31 +476,6 @@ router.patch('/library/:steamId/game/:appId/image', async (req: Request, res: Re
   }
 });
 
-router.get('/wishlist/:steamId', async (req: Request, res: Response) => {
-  try {
-    const steamId = req.params.steamId as string;
-
-    if (!steamId) {
-      res.status(400).json({ error: 'Steam ID is required' });
-      return;
-    }
-
-    const wishlist = await steamService.getEnrichedWishlist(steamId);
-    await steamService.saveWishlist(steamId, wishlist);
-
-    res.json({
-      success: true,
-      count: wishlist.length,
-      games: wishlist
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: 'Failed to fetch wishlist',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
 router.get('/player/:steamId', async (req: Request, res: Response) => {
   try {
     const steamId = req.params.steamId as string;

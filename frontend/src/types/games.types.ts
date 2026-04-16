@@ -11,7 +11,7 @@ export type Platform =
 
 export type GameStatus = 'playing' | 'completed' | 'backlog' | 'unplayed';
 
-export type TabType = 'profile' | 'library' | 'journal' | 'dashboard' | 'wishlist' | 'recommendations' | 'analytics' | 'tierlist';
+export type TabType = 'profile' | 'library' | 'journal' | 'dashboard' | 'wishlist' | 'recommendations' | 'smart-recommendations' | 'analytics' | 'tierlist';
 
 export type SortField = 'name' | 'playtime' | 'rating' | 'status' | 'pricePerHour' | 'pricePaid';
 export type SortDirection = 'asc' | 'desc';

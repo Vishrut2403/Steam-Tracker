@@ -5,6 +5,8 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import path from 'path';
 import cors from 'cors';
 
+import { apiLimiter, authLimiter, expensiveOpLimiter } from './middleware/rateLimit.middleware';
+
 import recommendationRoutes from './routes/recommendation.routes';
 import wishlistRoutes from './routes/wishlist.routes';
 import steamRoutes from './routes/steam.routes';
@@ -33,6 +35,8 @@ app.use(cors({
 
 app.use(express.json());
 
+app.use('/api/', apiLimiter);
+
 app.get('/health', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
@@ -41,9 +45,13 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-app.use('/api/steam', steamRoutes);
+app.use('/api/auth', authLimiter);
 app.use('/api/auth', authRoutes);
+
+app.use('/api/recommendations', expensiveOpLimiter);
 app.use('/api/recommendations', recommendationRoutes);
+
+app.use('/api/steam', steamRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/multiplatform', multiplatformRoutes);
 app.use('/api/retroachievements', retroAchievementsRoutes);
