@@ -1,103 +1,103 @@
 import prisma from '../prisma';
 
 class WishlistService {
-  async getUserWishlist(userId: string) {
-    const items = await prisma.steamWishlist.findMany({
-      where: { userId },
-      orderBy: { recommendationScore: 'desc' },
-    });
+	async getUserWishlist(userId: string) {
+		const items = await prisma.steamWishlist.findMany({
+			where: { userId },
+			orderBy: { recommendationScore: 'desc' },
+		});
 
-    return items;
-  }
+		return items;
+	}
 
-  async createWishlistItem(userId: string, data: {
-    appId: string;
-    name: string;
-    tags: string[];
-    listPrice: number;
-    currentPrice: number;
-    imageUrl?: string;
-  }) {
-    const discountPercent = data.listPrice > 0 
-      ? Math.round(((data.listPrice - data.currentPrice) / data.listPrice) * 100)
-      : 0;
+	async createWishlistItem(userId: string, data: {
+		appId: string;
+		name: string;
+		tags: string[];
+		listPrice: number;
+		currentPrice: number;
+		imageUrl?: string;
+	}) {
+		const discountPercent = data.listPrice > 0 
+			? Math.round(((data.listPrice - data.currentPrice) / data.listPrice) * 100)
+			: 0;
 
-    const item = await prisma.steamWishlist.create({
-      data: {
-        userId,
-        appId: data.appId,
-        name: data.name,
-        tags: data.tags,
-        listPrice: data.listPrice,
-        currentPrice: data.currentPrice,
-        discountPercent,
-        imageUrl: data.imageUrl,
-      },
-    });
+		const item = await prisma.steamWishlist.create({
+			data: {
+				userId,
+				appId: data.appId,
+				name: data.name,
+				tags: data.tags,
+				listPrice: data.listPrice,
+				currentPrice: data.currentPrice,
+				discountPercent,
+				imageUrl: data.imageUrl,
+			},
+		});
 
-    return item;
-  }
+		return item;
+	}
 
-  async updateWishlistItem(id: string, userId: string, data: {
-    name?: string;
-    tags?: string[];
-    listPrice?: number;
-    currentPrice?: number;
-    imageUrl?: string;
-  }) {
-    const existing = await prisma.steamWishlist.findFirst({
-      where: { id, userId },
-    });
+	async updateWishlistItem(id: string, userId: string, data: {
+		name?: string;
+		tags?: string[];
+		listPrice?: number;
+		currentPrice?: number;
+		imageUrl?: string;
+	}) {
+		const existing = await prisma.steamWishlist.findFirst({
+			where: { id, userId },
+		});
 
-    if (!existing) {
-      throw new Error('Wishlist item not found');
-    }
+		if (!existing) {
+			throw new Error('Wishlist item not found');
+		}
 
-    const listPrice = data.listPrice ?? existing.listPrice;
-    const currentPrice = data.currentPrice ?? existing.currentPrice;
-    const discountPercent = listPrice > 0 
-      ? Math.round(((listPrice - currentPrice) / listPrice) * 100)
-      : 0;
+		const listPrice = data.listPrice ?? existing.listPrice;
+		const currentPrice = data.currentPrice ?? existing.currentPrice;
+		const discountPercent = listPrice > 0 
+			? Math.round(((listPrice - currentPrice) / listPrice) * 100)
+			: 0;
 
-    const updated = await prisma.steamWishlist.update({
-      where: { id },
-      data: {
-        ...data,
-        discountPercent,
-        updatedAt: new Date(),
-      },
-    });
+		const updated = await prisma.steamWishlist.update({
+			where: { id },
+			data: {
+				...data,
+				discountPercent,
+				updatedAt: new Date(),
+			},
+		});
 
-    return updated;
-  }
+		return updated;
+	}
 
-  async deleteWishlistItem(id: string, userId: string) {
-    const existing = await prisma.steamWishlist.findFirst({
-      where: { id, userId },
-    });
+	async deleteWishlistItem(id: string, userId: string) {
+		const existing = await prisma.steamWishlist.findFirst({
+			where: { id, userId },
+		});
 
-    if (!existing) {
-      throw new Error('Wishlist item not found');
-    }
+		if (!existing) {
+			throw new Error('Wishlist item not found');
+		}
 
-    await prisma.steamWishlist.delete({
-      where: { id },
-    });
+		await prisma.steamWishlist.delete({
+			where: { id },
+		});
 
-    return { success: true, id };
-  }
+		return { success: true, id };
+	}
 
-  async getWishlistItem(id: string, userId: string) {
-    const item = await prisma.steamWishlist.findFirst({
-      where: { id, userId },
-    });
+	async getWishlistItem(id: string, userId: string) {
+		const item = await prisma.steamWishlist.findFirst({
+			where: { id, userId },
+		});
 
-    if (!item) {
-      throw new Error('Wishlist item not found');
-    }
+		if (!item) {
+			throw new Error('Wishlist item not found');
+		}
 
-    return item;
-  }
+		return item;
+	}
 }
 
 export default new WishlistService();

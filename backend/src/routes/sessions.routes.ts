@@ -4,104 +4,104 @@ import { sessionTrackingService } from '../services/session-tracking.service';
 const router = Router();
 
 router.get('/daily-activity', async (req: Request, res: Response) => {
-  try {
-    const { userId, days } = req.query;
+	try {
+		const { userId, days } = req.query;
 
-    if (!userId) {
-      res.status(400).json({
-        success: false,
-        error: 'userId is required'
-      });
-      return;
-    }
+		if (!userId) {
+			res.status(400).json({
+				success: false,
+				error: 'userId is required'
+			});
+			return;
+		}
 
-    const daysNum = days ? parseInt(days as string) : 365;
-    const activity = await sessionTrackingService.getDailyActivity(
-      userId as string,
-      daysNum
-    );
+		const daysNum = days ? parseInt(days as string) : 365;
+		const activity = await sessionTrackingService.getDailyActivity(
+			userId as string,
+			daysNum
+		);
 
-    res.json({
-      success: true,
-      data: activity
-    });
-  } catch (error: any) {
-    console.error('Error fetching daily activity:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to fetch daily activity'
-    });
-  }
+		res.json({
+			success: true,
+			data: activity
+		});
+	} catch (error: any) {
+		console.error('Error fetching daily activity:', error);
+		res.status(500).json({
+			success: false,
+			error: error.message || 'Failed to fetch daily activity'
+		});
+	}
 });
 
 router.get('/', async (req: Request, res: Response) => {
-  try {
-    const { userId, startDate, endDate, gameId, platform } = req.query;
+	try {
+		const { userId, startDate, endDate, gameId, platform } = req.query;
 
-    if (!userId) {
-      res.status(400).json({
-        success: false,
-        error: 'userId is required'
-      });
-      return;
-    }
+		if (!userId) {
+			res.status(400).json({
+				success: false,
+				error: 'userId is required'
+			});
+			return;
+		}
 
-    const options: any = {};
-    if (startDate) options.startDate = new Date(startDate as string);
-    if (endDate) options.endDate = new Date(endDate as string);
-    if (gameId) options.gameId = gameId as string;
-    if (platform) options.platform = platform as string;
+		const options: any = {};
+		if (startDate) options.startDate = new Date(startDate as string);
+		if (endDate) options.endDate = new Date(endDate as string);
+		if (gameId) options.gameId = gameId as string;
+		if (platform) options.platform = platform as string;
 
-    const sessions = await sessionTrackingService.getUserSessions(
-      userId as string,
-      options
-    );
+		const sessions = await sessionTrackingService.getUserSessions(
+			userId as string,
+			options
+		);
 
-    res.json({
-      success: true,
-      data: sessions
-    });
-  } catch (error: any) {
-    console.error('Error fetching sessions:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to fetch sessions'
-    });
-  }
+		res.json({
+			success: true,
+			data: sessions
+		});
+	} catch (error: any) {
+		console.error('Error fetching sessions:', error);
+		res.status(500).json({
+			success: false,
+			error: error.message || 'Failed to fetch sessions'
+		});
+	}
 });
 
 router.get('/total-playtime', async (req: Request, res: Response) => {
-  try {
-    const { userId, startDate, endDate } = req.query;
+	try {
+		const { userId, startDate, endDate } = req.query;
 
-    if (!userId || !startDate || !endDate) {
-      res.status(400).json({
-        success: false,
-        error: 'userId, startDate, and endDate are required'
-      });
-      return;
-    }
+		if (!userId || !startDate || !endDate) {
+			res.status(400).json({
+				success: false,
+				error: 'userId, startDate, and endDate are required'
+			});
+			return;
+		}
 
-    const totalMinutes = await sessionTrackingService.getTotalPlaytime(
-      userId as string,
-      new Date(startDate as string),
-      new Date(endDate as string)
-    );
+		const totalMinutes = await sessionTrackingService.getTotalPlaytime(
+			userId as string,
+			new Date(startDate as string),
+			new Date(endDate as string)
+		);
 
-    res.json({
-      success: true,
-      data: {
-        minutes: totalMinutes,
-        hours: totalMinutes / 60
-      }
-    });
-  } catch (error: any) {
-    console.error('Error fetching total playtime:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to fetch total playtime'
-    });
-  }
+		res.json({
+			success: true,
+			data: {
+				minutes: totalMinutes,
+				hours: totalMinutes / 60
+			}
+		});
+	} catch (error: any) {
+		console.error('Error fetching total playtime:', error);
+		res.status(500).json({
+			success: false,
+			error: error.message || 'Failed to fetch total playtime'
+		});
+	}
 });
 
 export default router;

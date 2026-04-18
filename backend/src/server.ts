@@ -28,10 +28,10 @@ const PORT = process.env.PORT || 3001;
 const isProd = process.env.NODE_ENV === 'production';
 
 app.use(cors({
-  origin: isProd
-    ? true
-    : process.env.CORS_ORIGIN || 'http://localhost:5173',
-  credentials: true
+	origin: isProd
+		? true
+		: process.env.CORS_ORIGIN || 'http://localhost:5173',
+	credentials: true
 }));
 
 app.use(express.json());
@@ -39,11 +39,11 @@ app.use(express.json());
 app.use('/api/', apiLimiter);
 
 app.get('/health', (_req: Request, res: Response) => {
-  res.json({
-    status: 'ok',
-    message: 'Steam Tracker API is running!',
-    timestamp: new Date().toISOString()
-  });
+	res.json({
+		status: 'ok',
+		message: 'Steam Tracker API is running!',
+		timestamp: new Date().toISOString()
+	});
 });
 
 app.use('/api/auth', authLimiter);
@@ -67,34 +67,34 @@ app.use('/api/retroarch', retroArchRoutes);
 app.use('/api/auto-sync', autoSyncRoutes);
 
 if (isProd) {
-  const frontendPath = path.join(__dirname, '../../frontend');
-  app.use(express.static(frontendPath));
+	const frontendPath = path.join(__dirname, '../../frontend');
+	app.use(express.static(frontendPath));
 
-  app.get(/^\/(?!api).*/, (_req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-  });
+	app.get(/^\/(?!api).*/, (_req, res) => {
+		res.sendFile(path.join(frontendPath, 'index.html'));
+	});
 }
 
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ success: false, error: 'Internal server error' });
+	console.error('Unhandled error:', err);
+	res.status(500).json({ success: false, error: 'Internal server error' });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
-  console.log(`Steam API: http://localhost:${PORT}/api/steam`);
-  console.log(`Auth: http://localhost:${PORT}/api/auth`);
-  console.log(`RetroAchievements: http://localhost:${PORT}/api/retroachievements`);
-  console.log(`PCSX2: http://localhost:${PORT}/api/pcsx2`);
-  console.log(`RPCS3: http://localhost:${PORT}/api/rpcs3`);
-  console.log(`Journal: http://localhost:${PORT}/api/journal`);
-  console.log(`HLTB: http://localhost:${PORT}/api/hltb`);
-  console.log(`RetroArch: http://localhost:${PORT}/api/retroarch`);
+	console.log(`Server running on port ${PORT}`);
+	console.log(`Health check: http://localhost:${PORT}/health`);
+	console.log(`Steam API: http://localhost:${PORT}/api/steam`);
+	console.log(`Auth: http://localhost:${PORT}/api/auth`);
+	console.log(`RetroAchievements: http://localhost:${PORT}/api/retroachievements`);
+	console.log(`PCSX2: http://localhost:${PORT}/api/pcsx2`);
+	console.log(`RPCS3: http://localhost:${PORT}/api/rpcs3`);
+	console.log(`Journal: http://localhost:${PORT}/api/journal`);
+	console.log(`HLTB: http://localhost:${PORT}/api/hltb`);
+	console.log(`RetroArch: http://localhost:${PORT}/api/retroarch`);
 
-  if (isProd) {
-    console.log('Frontend served from Express (production mode)');
-  }
+	if (isProd) {
+		console.log('Frontend served from Express (production mode)');
+	}
 });
 
 export default app;
