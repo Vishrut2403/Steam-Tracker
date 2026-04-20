@@ -117,7 +117,7 @@ const AutoLinkISOsModal: React.FC<AutoLinkISOsModalProps> = ({ isOpen, onClose, 
 				{linkResult && (
 					<div className="space-y-4">
 						<div className="p-4 bg-[#3a4a3a] border border-[#5a7fa3] rounded">
-							<h3 className="text-[#7a9fc3] font-semibold mb-2">✅ Scan Complete!</h3>
+							<h3 className="text-[#7a9fc3] font-semibold mb-2">Scan Complete!</h3>
 							<div className="text-sm text-[#a0a0a0] space-y-1">
 								<p>Total Games: {linkResult.totalGames}</p>
 								<p>Total ISOs Found: {linkResult.totalISOs}</p>

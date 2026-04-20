@@ -331,7 +331,7 @@ function Home({ user, onLogout }: HomeProps) {
 				{/* Tabs */}
 				<div className="flex gap-3 mb-12 flex-wrap">
 					{[
-						{ key: 'profile', label: '👤 Profile' },
+						{ key: 'profile', label: 'Profile' },
 						{ key: 'journal', label: 'Journal' },
 						{ key: 'dashboard', label: 'Dashboard' },
 						{ key: 'wishlist', label: 'Wishlist' },
@@ -454,7 +454,7 @@ function Home({ user, onLogout }: HomeProps) {
 									disabled={loading}
 									className="px-6 py-2.5 bg-[#1a1a1a] rounded-xl border border-[#333333] font-semibold hover:bg-[#2a2a2a] transition-all duration-300 shadow-md disabled:opacity-50 text-[#e5e5e5] whitespace-nowrap"
 								>
-									{loading ? '⟳ Syncing...' : '🕹️ Sync All Emulators'}
+									{loading ? '⟳ Syncing...' : 'Sync All Emulators'}
 								</button>
 
 								<button
@@ -470,7 +470,6 @@ function Home({ user, onLogout }: HomeProps) {
 										</>
 									) : (
 										<>
-											<span className="mr-1">✨</span>
 											Sync All Platforms
 										</>
 									)}
