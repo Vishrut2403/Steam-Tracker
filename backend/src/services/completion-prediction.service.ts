@@ -24,9 +24,6 @@ interface PredictionResult {
 export class CompletionPredictionService {
 	constructor(private prisma: PrismaClient) {}
 
-	/**
-	 * Get user's playstyle metrics based on their completed games
-	 */
 	async getUserPlaystyle(userId: string): Promise<UserPlaystyle> {
 		// Get all completed games with their session data
 		const completedGames = await this.prisma.libraryGame.findMany({
@@ -49,7 +46,6 @@ export class CompletionPredictionService {
 		});
 
 		if (completedGames.length === 0) {
-			// Default playstyle if no completed games yet
 			return {
 				avgCompletionRate: 0.5, // Assume 50% default
 				avgPlaytimePerGame: 60 * 20, // 20 hours
@@ -135,9 +131,6 @@ export class CompletionPredictionService {
 		};
 	}
 
-	/**
-	 * Predict when a game will be completed
-	 */
 	async predictCompletion(
 		userId: string,
 		gameId: string,
@@ -155,17 +148,15 @@ export class CompletionPredictionService {
 
 			const playstyle = await this.getUserPlaystyle(userId);
 
-			// Get current playtime
 			const currentPlaytimeMinutes = game.playtimeForever || 0;
 
-			// Get average daily playtime across all games
 			const allSessions = await this.prisma.gameSession.findMany({
 				where: { userId },
 				orderBy: { date: 'desc' },
-				take: 60, // Last 60 days for better average
+				take: 60,
 			});
 
-			let avgMinutesPerDay = 120; // Default 2 hours/day if no session data
+			let avgMinutesPerDay = 120; 
 			if (allSessions.length > 1) {
 				const latestDate = allSessions[0].date;
 				const oldestDate = allSessions[allSessions.length - 1].date;
@@ -200,7 +191,6 @@ export class CompletionPredictionService {
 
 			// If playtime exceeds estimate, adjust estimate upward and recalculate
 			if (currentPlaytimeMinutes > estimatedTotalMinutes) {
-				// Add 20% padding to account for variation in playstyles
 				estimatedTotalMinutes = currentPlaytimeMinutes * 1.2;
 				reasoning = 'Adjusted based on your actual playtime (exceeds estimate)';
 				confidence = 0.6; // Lower confidence since estimate was exceeded
@@ -266,17 +256,12 @@ export class CompletionPredictionService {
 		}
 	}
 
-	/**
-	 * Get accuracy metrics of predictions (for debugging/improvement)
-	 */
 	async getPredictionAccuracy(userId: string): Promise<{
 		totalPredictions: number;
 		accurateWithin7Days: number;
 		accurateWithin14Days: number;
 		avgErrorDays: number;
 	}> {
-		// This would require storing predictions and comparing with actual completion
-		// For now, return placeholder
 		return {
 			totalPredictions: 0,
 			accurateWithin7Days: 0,

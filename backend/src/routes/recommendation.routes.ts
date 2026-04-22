@@ -96,7 +96,7 @@ router.post('/:userId/optimize', async (req: Request, res: Response) => {
 router.get('/:userId/smart', async (req: Request, res: Response) => {
 	try {
 		const userId = req.params.userId as string;
-		const limit = Math.min(parseInt(req.query.limit as string) || 5, 20); // Max 20 recommendations
+		const limit = Math.min(parseInt(req.query.limit as string) || 5, 20); 
 
 		if (!userId) {
 			res.status(400).json({ error: 'User ID required' });
