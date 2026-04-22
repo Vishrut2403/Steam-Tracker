@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import steamService from '../services/steam.service';
 import { PlatformBadge } from './PlatformBadge';
@@ -13,6 +13,18 @@ interface HltbData {
 	gameplayMainExtra:     number;
 	gameplayCompletionist: number;
 	name:                  string;
+}
+
+interface PredictionData {
+	estimatedDays: number;
+	estimatedCompletionDate: string;
+	confidence: number;
+	reasoning: string;
+	hltbEstimate?: number;
+	hoursPlayed: number;
+	hoursRemaining: number;
+	estimatedTotalHours: number;
+	avgHoursPerDay: number;
 }
 
 interface GameModalProps {
@@ -35,6 +47,8 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
 
 	const [hltbData,    setHltbData]    = useState<HltbData | null>(null);
 	const [hltbLoading, setHltbLoading] = useState(false);
+	const [prediction,  setPrediction]  = useState<PredictionData | null>(null);
+	const [predictionLoading, setPredictionLoading] = useState(false);
 
 	useEffect(() => {
 		setEditingReview(game.review || '');
@@ -42,8 +56,16 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
 		setCurrentRating(game.rating || 0);
 		setActiveTab('overview');
 		setHltbData(null);
+		setPrediction(null);
 		fetchHltb();
 	}, [game]);
+
+	// Fetch prediction after HLTB data loads
+	useEffect(() => {
+		if (!hltbLoading) {
+			fetchPrediction();
+		}
+	}, [hltbLoading, hltbData, game.id]);
 
 	const fetchHltb = async () => {
 		setHltbLoading(true);
@@ -63,6 +85,38 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
 			setHltbLoading(false);
 		}
 	};
+
+	const fetchPrediction = useCallback(async () => {
+		setPredictionLoading(true);
+		try {
+			const token = localStorage.getItem('token');
+			let hltbHours = 0;
+			
+			// Use already-fetched HLTB data instead of refetching
+			if (hltbData?.gameplayCompletionist) {
+				hltbHours = hltbData.gameplayCompletionist;
+			}
+
+			const url = `${API_URL}/api/predictions/${game.id}${hltbHours ? `?hltbCompletionistMinutes=${hltbHours}` : ''}`;
+			
+			const res = await axios.post(
+				url,
+				{},
+				{
+					headers: { Authorization: `Bearer ${token}` },
+				}
+			);
+			
+			if (res.data.success && res.data.data) {
+				const predData = res.data.data;
+				setPrediction(predData);
+			}
+		} catch (error: any) {
+			// Silently fail - prediction is optional, don't block UI if it fails
+		} finally {
+			setPredictionLoading(false);
+		}
+	}, [game.id, hltbData]);
 
 	const getAchievementPercentage = () => {
 		if (!game.achievementsTotal || game.achievementsTotal === 0) return 0;
@@ -203,7 +257,7 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
 									activeTab === tab ? 'text-[#5a7fa3]' : 'text-[#a0a0a0] hover:text-[#e5e5e5]'
 								}`}
 							>
-								{tab === 'journal' ? '📝 Journal' : 'Overview'}
+								{tab === 'journal' ? 'Journal' : 'Overview'}
 								{activeTab === tab && (
 									<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#5a7fa3]" />
 								)}
@@ -286,8 +340,62 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onUpdate, s
 								)}
 							</div>
 
+							{/* ── Time-to-Complete Prediction ── */}
+					{prediction && hltbData && !is100Percent() && (
+								<div className="p-6 bg-gradient-to-r from-[#1a1a1a] to-[#252525] rounded-lg border border-[#5a7fa3]/30">
+									<p className="text-sm font-semibold text-[#a0a0a0] mb-3">Estimated Completion</p>
+									
+									<div className="flex items-stretch gap-4 mb-4">
+										{/* Hours breakdown */}
+										<div className="flex-1 flex items-center justify-between gap-4 p-3 bg-[#2a2a2a] rounded border border-[#5a5a5a]">
+											<div className="flex-1">
+												<p className="text-xs text-[#a0a0a0]">Hours Played</p>
+												<p className="text-lg font-bold text-[#7a9fc3]">{typeof prediction.hoursPlayed === 'number' && !isNaN(prediction.hoursPlayed) ? prediction.hoursPlayed : '?'}h</p>
+											</div>
+											<div className="flex-1">
+												<p className="text-xs text-[#a0a0a0]">Hours Remaining</p>
+												<p className="text-lg font-bold text-[#e5e5e5]">{typeof prediction.hoursRemaining === 'number' && !isNaN(prediction.hoursRemaining) ? prediction.hoursRemaining : '?'}h</p>
+											</div>
+											<div className="flex-1">
+												<p className="text-xs text-[#a0a0a0]">Estimated Total</p>
+												<p className="text-lg font-bold text-[#a0a0a0]">{typeof prediction.estimatedTotalHours === 'number' && !isNaN(prediction.estimatedTotalHours) ? prediction.estimatedTotalHours : '?'}h</p>
+											</div>
+											<div className="flex-1">
+												<p className="text-xs text-[#a0a0a0]">Daily Pace</p>
+												<p className="text-lg font-bold text-[#7a9fc3]">{typeof prediction.avgHoursPerDay === 'number' && !isNaN(prediction.avgHoursPerDay) ? prediction.avgHoursPerDay : '?'}h/day</p>
+											</div>
+										</div>
+
+										{/* Days estimate - alongside hours */}
+										<div className="flex-shrink-0 p-3 bg-[#1a3a4a] rounded border border-[#5a7fa3] flex flex-col justify-center items-center min-w-[140px]">
+											<p className="text-2xl font-bold text-[#5a7fa3]">
+												{prediction.estimatedDays} day{prediction.estimatedDays !== 1 ? 's' : ''}
+											</p>
+											<p className="text-xs text-[#696969]">
+												Est. {new Date(prediction.estimatedCompletionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+											</p>
+										</div>
+									</div>
+
+									<div className="flex items-center justify-between">
+										<p className="text-xs text-[#a0a0a0] leading-relaxed">
+											{prediction.reasoning}
+										</p>
+										<span className="text-xs font-bold text-[#7a9fc3] bg-[#2a2a2a] px-3 py-1 rounded whitespace-nowrap">
+											{Math.round(prediction.confidence * 100)}% confidence
+										</span>
+									</div>
+								</div>
+							)}
+
+							{predictionLoading && (
+								<div className="p-6 bg-[#1a1a1a] rounded-lg border border-[#333333]">
+									<p className="text-xs text-[#696969] animate-pulse">Calculating your completion time...</p>
+								</div>
+							)}
+
 							{/* Achievements */}
-							{game.achievementsTotal && game.achievementsTotal > 0 && (
+							{game.achievementsTotal && game.achievementsTotal > 0 && !is100Percent() && (
 								<div className="p-6 bg-[#1a1a1a] rounded-lg border border-[#333333]">
 									<div className="flex items-center justify-between mb-3">
 										<p className="text-sm font-semibold text-[#a0a0a0]">Achievements</p>

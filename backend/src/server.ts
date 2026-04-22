@@ -22,6 +22,7 @@ import userRoutes from './routes/user.routes';
 import hltbRoutes from './routes/hltb.routes';
 import retroArchRoutes from './routes/retroarch.routes';
 import autoSyncRoutes from './routes/auto-sync.routes';
+import predictionsRoutes from './routes/predictions.routes';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
@@ -65,6 +66,8 @@ app.use('/api/user', userRoutes);
 app.use('/api/hltb', hltbRoutes);
 app.use('/api/retroarch', retroArchRoutes);
 app.use('/api/auto-sync', autoSyncRoutes);
+app.use('/api/predictions', expensiveOpLimiter);
+app.use('/api/predictions', predictionsRoutes);
 
 if (isProd) {
 	const frontendPath = path.join(__dirname, '../../frontend');

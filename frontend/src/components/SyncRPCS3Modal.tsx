@@ -24,13 +24,11 @@ const SyncRPCS3Modal: React.FC<SyncRPCS3ModalProps> = ({ isOpen, onClose, onSync
 		setSyncResult(null);
 
 		try {
-			console.log('🎮 Starting RPCS3 sync (playtime + trophies)...');
+			console.log('Starting RPCS3 sync (playtime + trophies)...');
 			
 			const playtimeResponse = await axios.post('http://localhost:3001/api/rpcs3/sync', { userId });
-			console.log('✅ Playtime synced:', playtimeResponse.data);
 			
 			const trophyResponse = await axios.post('http://localhost:3001/api/rpcs3/sync-trophies', { userId });
-			console.log('✅ Trophies synced:', trophyResponse.data);
 			
 			setSyncResult({
 				playtime: playtimeResponse.data.summary,
@@ -43,7 +41,7 @@ const SyncRPCS3Modal: React.FC<SyncRPCS3ModalProps> = ({ isOpen, onClose, onSync
 			}, 3000);
 			
 		} catch (err: any) {
-			console.error('❌ RPCS3 sync failed:', err);
+			console.error('RPCS3 sync failed:', err);
 			setError(err.response?.data?.error || 'Failed to sync RPCS3 data. Make sure RPCS3 is installed.');
 		} finally {
 			setIsLoading(false);
@@ -111,7 +109,7 @@ const SyncRPCS3Modal: React.FC<SyncRPCS3ModalProps> = ({ isOpen, onClose, onSync
 						</div>
 
 						<div className="p-4 bg-[#3a4a3a] border border-[#5a7fa3] rounded">
-							<h3 className="text-[#7a9fc3] font-semibold mb-2">🏆 Trophies</h3>
+							<h3 className="text-[#7a9fc3] font-semibold mb-2">Trophies</h3>
 							<div className="text-sm text-[#a0a0a0] space-y-1">
 								<p>Games Found: {syncResult.trophies.total}</p>
 								<p>Updated: {syncResult.trophies.updated}</p>
